@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Shop{% endblock %}
+
+{% block head %}
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src='https://kit.fontawesome.com/a076d05399.js'></script>
+<script src="../../static/js/shop_search.js"></script>
+<script src="../../static/js/filter.js"></script>
+<link href="../../static/css/css.css" rel="stylesheet">
+<script src="../../static/js/shop_search.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% endblock %}
+
+{% block content %}
+{% if 'item_created' in session %}
+<div class="alert alert-success alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('item_created', None) }} was created.
+</div>
+{% elif 'item_updated' in session %}
+<div class="alert alert-warning alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('item_updated', None) }} was updated.
+</div>
+{% elif 'item_deleted' in session %}
+<div class="alert alert-danger alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('item_deleted', None) }} was deleted.
+</div>
+{% endif %}
+<div class="flex">
+    <div class="flex-colum" id="filters">
+        <h1>Category</h1>
+        <ul class="filter-bar" id="filters_category">
+            <li>
+                <input name="category" type="checkbox" value="Fruit and vegetables"> Fruit and
+                vegetables
+            </li>
+            <li>
+                <input name="category" type="checkbox" value="Frozen"> Frozen
+            </li>
+            <li>
+                <input name="category" type="checkbox" value="Dairy"> Dairy
+            </li>
+            <li>
+                <input name="category" type="checkbox" value="Meat and seafood"> Meat and seafood
+            </li>
+            <li>
+                <input name="category" type="checkbox" value="Drinks"> Drinks
+            </li>
+            <li>
+                <input name="category" type="checkbox" value="Packaged food and snacks"> Packaged
+                food/snacks
+            </li>
+        </ul>
+        <br>
+        <h1>Dietary</h1>
+        <ul class="filter-bar" id="filters_dietary">
+            <li><input name="dietary" type="checkbox" value="Halal"> Halal</li>
+            <li><input name="dietary" type="checkbox" value="Healthier choice"> Healthier choice</li>
+            <li><input name="dietary" type="checkbox" value="Organic"> Organic</li>
+            <li><input name="dietary" type="checkbox" value="Vegetarian"> Vegetarian</li>
+            <li><input name="dietary" type="checkbox" value="Gluten-Free"> Gluten-Free</li>
+            <li><input name="dietary" type="checkbox" value="Trans-Fat-Free"> Trans-Fat-Free</li>
+            <li><input name="dietary" type="checkbox" value="Hypoallergenic"> Hypoallergenic</li>
+            <li><input name="dietary" type="checkbox" value="Lactose-Free"> Lactose-Free</li>
+
+        </ul>
+    </div>
+    <div class="flex-colum" style="flex-basis: 1000px">
+        <div class="container-fluid">
+            <div class="d-flex flex-row ">
+                <form action="#" class="p-2 mr-auto">
+                    <div class="form-group">
+                        <input class="form-control" id="box" name="search" placeholder="Search" type="text">
+                    </div>
+                </form>
+                <a class="p-2" href="/create_item/shop"><img height="40" src="../../static/img/plus.png" width="40"></a>
+                <div class="dropdown p-2">
+                    <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown" type="button">
+                        Sort by:
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="/shop_admin/alphabet">Alphabet</a>
+                        <a class="dropdown-item" href="/shop_admin/Low_to_high_price">Lowest to highest price</a>
+                        <a class="dropdown-item" href="/shop_admin/High_to_low_price">Highest to lowest price</a>
+                        <a class="dropdown-item" href="/shop_admin/brand_AtoZ">Brand A to Z</a>
+                        <a class="dropdown-item" href="/shop_admin/brand_ZtoA">Brand Z to A</a>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex flex-md-wrap shop">
+                {% for item in item_list %}
+                {% if item.get_stock_left() == 0 %}
+                <a class="shop_display_link" href="shop_display/{{item.get_id()}}">
+                    <div class="shop-item d-2" data-category="{{item.get_category()}}"
+                         data-dietary="{{item.get_dietary()}}">
+                        <img height="200" src="../../static/img/uploaded/{{ item.get_stock_name() }}.png" width="200">
+                        <p class="brand_text">{{ item.get_brand() }}</p>
+                        <p class="name">{{ item.get_stock_name() }}</p>
+                        <p class="weight">{{item.get_weight()}} {{item.get_unit()}}</p>
+                        <p class="price">${{ item.get_base_price() }}</p>
+                        <div class="d-flex  justify-content-center">
+                            <a class="p-2" href="update/{{ item.get_id() }}">
+                                <button class="btn btn-light">Edit</button>
+                            </a>
+                            <form action="{{url_for('kin.delete_stock', id=item.get_id())}}" class="p-2" method="POST">
+                                <!-- Button to Open the Modal -->
+                                <button class="btn btn-danger" data-target="#myModal_{{item.get_id()}}"
+                                        data-toggle="modal"
+                                        type="button">
+                                    Delete
+                                </button>
+                                <!-- The Modal -->
+                                <div class="modal" id="myModal_{{item.get_id()}}">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+
+                                            <!-- Modal Header -->
+                                            <div class="modal-header">
+                                                <h4 class="modal-title">Delete Confirmation</h4>
+                                                <button class="close" data-dismiss="modal" type="button">&times;
+                                                </button>
+                                            </div>
+
+                                            <!-- Modal body -->
+                                            <div class="modal-body">
+                                                Are you sure you want to delete {{item.get_stock_name()}}?
+                                            </div>
+                                            <!-- Modal footer -->
+                                            <div class="modal-footer">
+                                                <input class="btn btn-danger" type="submit" value="Delete">
+                                                <button class="btn btn-secondary" data-dismiss="modal" type="button">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </a>
+                {% else %}
+                <a class="shop_display_link" href="shop_display/{{item.get_id()}}">
+                    <div class="shop-item d-2" data-category="{{item.get_category()}}"
+                         data-dietary="{{item.get_dietary()}}">
+                        <img height="200" src="../../static/img/uploaded/{{ item.get_stock_name() }}.png" width="200">
+                        <p class="brand_text">{{ item.get_brand() }}</p>
+                        <p class="name">{{ item.get_stock_name() }}</p>
+                        <p class="weight">{{item.get_weight()}} {{item.get_unit()}}</p>
+                        <p class="price">${{ item.get_base_price() }}</p>
+                        <div class="d-flex justify-content-center">
+                            <a class="p-2" href="update/{{ item.get_id() }}">
+                                <button class="btn btn-light">Edit</button>
+                            </a>
+                            <form action="{{url_for('kin.delete_shop', id=item.get_id())}}" class="p-2" method="POST">
+                                <!-- Button to Open the Modal -->
+                                <button class="btn btn-danger" data-target="#myModal_{{item.get_id()}}"
+                                        data-toggle="modal"
+                                        type="button">
+                                    Delete
+                                </button>
+                                <!-- The Modal -->
+                                <div class="modal" id="myModal_{{item.get_id()}}">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+
+                                            <!-- Modal Header -->
+                                            <div class="modal-header">
+                                                <h4 class="modal-title">Delete Confirmation</h4>
+                                                <button class="close" data-dismiss="modal" type="button">&times;
+                                                </button>
+                                            </div>
+
+                                            <!-- Modal body -->
+                                            <div class="modal-body">
+                                                Are you sure you want to delete {{item.get_stock_name()}}?
+                                            </div>
+                                            <!-- Modal footer -->
+                                            <div class="modal-footer">
+                                                <input class="btn btn-danger" type="submit" value="Delete">
+                                                <button class="btn btn-secondary" data-dismiss="modal" type="button">
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="../../static/js/shop_search.js"></script>
+{% endblock %}

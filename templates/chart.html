@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Chart{% endblock %}
+
+
+{% block head %}
+<title>No. of Customers</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+{% endblock %}
+
+{% block content %}
+<canvas height="900" id="myChart" width="1600"></canvas>
+
+<script>
+        var ctx = document.getElementById('myChart').getContext('2d');
+
+        var count_data = {{ count_data }}
+        var locations_label = {{ locations_label|tojson|safe }}
+        var chart = new Chart(ctx, {
+        // The type of chart we want to create
+        type: 'horizontalBar',
+
+    // The data for our dataset
+    data: {
+        labels: locations_label,
+        datasets: [{
+            label: 'Total No. of Customers',
+            backgroundColor: 'rgba(23,162,184,255)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: count_data,
+        }]
+    },
+
+    // Configuration options go here
+    options: {}
+});
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+
+{% endblock %}

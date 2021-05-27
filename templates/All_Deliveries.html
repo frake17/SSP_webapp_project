@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %} All deliveries {% endblock %}
+
+{% block content %}
+<h1 class="display-4">Delivery</h1>
+<!-- Nav tabs -->
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link active" href="/All_Deliveries">Delivery</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/All_Self_collection">Self-collection</a>
+    </li>
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="navbardrop">
+            Deliverymen
+        </a>
+        <div class="dropdown-menu">
+            <a class="dropdown-item" href="/Create_Deliverymen">Create Deliverymen</a>
+            <a class="dropdown-item" href="/Display_Deliverymen">Display Deliverymen</a>
+        </div>
+</ul>
+<!-- Tab panes -->
+<div class="tab-content">
+    <div class="tab-pane container-fluid active" id="Delivery">
+        <br>
+        <ul class="navbar-nav">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="navbardrop1">
+                    Destination Regions
+                </a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="/Dest_North">North</a>
+                    <a class="dropdown-item" href="/Dest_South">South</a>
+                    <a class="dropdown-item" href="/Dest_East">East</a>
+                    <a class="dropdown-item" href="/Dest_West">West</a>
+                </div>
+            </li>
+        </ul>
+        <br>
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>No.</th>
+                <th>Name</th>
+                <th>Contact No.</th>
+                <th>Items</th>
+                <th>Address</th>
+                <th>Date</th>
+                <th>Status</th>
+
+            </tr>
+            </thead>
+            <tbody>
+
+            {% for order in order_list %}
+            <tr>
+                <td>{{order.get_id()}}</td>
+                <td>{{order.get_name()}}</td>
+                <td>{{order.get_phone()}}</td>
+                <td>
+                    {% for item in order.get_item() %}
+                    {{item}} x {{order.get_item().get(item)}}
+                    {% endfor %}
+                </td>
+                <td>{{order.get_location()}} {{order.get_level()}} {{order.get_door()}}, singapore
+                    {{order.get_postal()}}
+                </td>
+                <td>{{order.get_date()}}</td>
+                <td>{{order.get_status()}}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

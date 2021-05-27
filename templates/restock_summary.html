@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block head%}
+<link href="../../static/css/css.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="fluid-container">
+    <h1 style="text-align: center;">Order summary</h1>
+    <div class="summary">
+        <h2>Current order</h2>
+        <p><span style="font-weight: bold;">Email: </span>{{current.get_email()}}</p>
+        <p><span style="font-weight: bold;">Order quantity: </span>{{current.get_order()}}</p>
+        <h2>All orders</h2>
+        {% for item in item_list %}
+        <p><span style="font-weight: bold;">Order Id: </span>{{item.get_id()}}</p>
+        <p><span style="font-weight: bold;">Email: </span> {{item.get_email()}}</p>
+        <p><span style="font-weight: bold;">Order quantity: </span> {{item.get_order()}}</p>
+        <br>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+

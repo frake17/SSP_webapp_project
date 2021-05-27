@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "includes/_formHelper.html" import render_field %}
+{% block title %}Search{% endblock %}
+
+{% block content %}
+
+<h1 class="display-6">Retrieve User Records</h1>
+
+<form action="" method="POST">
+    <div class="form-row" style="width: 50%">
+        <div class="form-group col">
+            <label>Outlet</label>
+            <select class="form-control" name="location">
+                {% for location in locations_list %}
+                <option>{{ location.get_address() }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group col">
+            {{ render_field(form.search_date, class="form-control") }}
+        </div>
+    </div>
+    <input class="btn btn-primary" name="btn" type="submit" value="Retrieve">
+</form>
+<br>
+<div>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Outlet</th>
+            <th>Date</th>
+            <th>Customer IC</th>
+            <th>Customer No.</th>
+            <th>Temperature</th>
+            <th>Time - Entering</th>
+            <th>Time - Leaving</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for user in search_list %}
+        <tr>
+            <td>{{ user.get_outlet() }}</td>
+            <td>{{ user.get_date() }}</td>
+            <td>{{ user.get_cust_ic() }}</td>
+            <td>{{ user.get_cust_no() }}</td>
+            <td>{{ user.get_temp() }}</td>
+            <td>{{ user.get_time_enter() }}</td>
+            <td>{{ user.get_time_leave() }}</td>
+            <td><a class="btn btn-warning" href="/temp_updateUser/{{user.get_user_id()}}">Update</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% endblock %}

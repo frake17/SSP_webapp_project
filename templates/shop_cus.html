@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Shop{% endblock %}
+
+{% block head %}
+<meta content="width=device-width, initial-scale=1" name="viewport">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src='https://kit.fontawesome.com/a076d05399.js'></script>
+<script src="../../static/js/shop_search.js"></script>
+<script src="../../static/js/filter.js"></script>
+<link href="../../static/css/css.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<style>
+    a {
+    text-decoration: none;
+    }
+</style>
+{% if 'cart_added' in session %}
+<div class="alert alert-success alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('cart_added', None) }} was added.
+</div>
+{% elif 'not_enough' in session %}
+<div class="alert alert-success alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    There isn't enough {{ session.pop('not_enough', None) }} stock to add more.
+</div>
+{% endif %}
+<div class="flex">
+    <div class="flex-colum" id="filters">
+        <h1>Category</h1>
+        <ul class="filter-bar" id="filters_category">
+            <li>
+                <input name="category" type="checkbox" value="Fruit and vegetables"> Fruit and
+                vegetables
+            </li>
+            <li>
+                <input name="category" type="checkbox" value="Frozen"> Frozen
+            </li>
+            <li>
+                <input name="category" type="checkbox" value="Dairy"> Dairy
+            </li>
+            <li>
+                <input name="category" type="checkbox" value="Meat and seafood"> Meat and seafood
+            </li>
+            <li>
+                <input name="category" type="checkbox" value="Drinks"> Drinks
+            </li>
+            <li>
+                <input name="category" type="checkbox" value="Packaged food and snacks"> Packaged
+                food/snacks
+            </li>
+        </ul>
+        <br>
+        <h1>Dietary</h1>
+        <ul class="filter-bar" id="filters_dietary">
+            <li><input name="dietary" type="checkbox" value="Halal"> Halal</li>
+            <li><input name="dietary" type="checkbox" value="Healthier choice"> Healthier choice</li>
+            <li><input name="dietary" type="checkbox" value="Organic"> Organic</li>
+            <li><input name="dietary" type="checkbox" value="Vegetarian"> Vegetarian</li>
+            <li><input name="dietary" type="checkbox" value="Gluten-Free"> Gluten-Free</li>
+            <li><input name="dietary" type="checkbox" value="Trans-Fat-Free"> Trans-Fat-Free</li>
+            <li><input name="dietary" type="checkbox" value="Hypoallergenic"> Hypoallergenic</li>
+            <li><input name="dietary" type="checkbox" value="Lactose-Free"> Lactose-Free</li>
+
+        </ul>
+    </div>
+    <div class="flex-colum" style="flex-basis: 1000px">
+        <div class="container-fluid">
+            <div class="d-flex flex-row ">
+                <form action="#" class="p-2 mr-auto">
+                    <div class="form-group">
+                        <input class="form-control" id="box" name="search" placeholder="Search" type="text">
+                    </div>
+                </form>
+                {% if 'current' in session %}
+                <a class="p-2" href="/cart"><img height="40" src="../../static/img/cart.png" width="40"></a>
+                {% endif %}
+                <div class="dropdown p-2">
+                    <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown" type="button">
+                        Sort by:
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="/shop_cus/alphabet">Alphabet</a>
+                        <a class="dropdown-item" href="/shop_cus/Low_to_high_price">Lowest to highest price</a>
+                        <a class="dropdown-item" href="/shop_cus/High_to_low_price">Highest to lowest price</a>
+                        <a class="dropdown-item" href="/shop_cus/brand_AtoZ">Brand A to Z</a>
+                        <a class="dropdown-item" href="/shop_cus/brand_ZtoA">Brand Z to A</a>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex flex-md-wrap shop">
+                {% for item in item_list %}
+                {% if item.get_stock_left() <= 0 %}
+                <a class="shop_display_link" href="shop_display/{{item.get_id()}}">
+                    <div class="shop-item d-2 shop_customer" data-category="{{item.get_category()}}"
+                         data-dietary="{{item.get_dietary()}}">
+                        <img height="200" src="../../static/img/uploaded/{{ item.get_stock_name() }}.png" width="200">
+                        <p class="brand_text">{{ item.get_brand() }}</p>
+                        <p class="name">{{ item.get_stock_name() }}</p>
+                        <p class="weight">{{item.get_weight()}} {{item.get_unit()}}</p>
+                        <p class="price">${{ item.get_base_price() }}</p>
+                        <button class="btn btn-light disabled">Out of stock</button>
+                    </div>
+                </a>
+                {% else %}
+                <a class="shop_display_link" href="shop_display/{{item.get_id()}}">
+                    <div class="shop-item d-2 shop_customer" data-category="{{item.get_category()}}">
+                        <img height="200" src="../../static/img/uploaded/{{ item.get_stock_name() }}.png" width="200">
+                        <p class="brand_text">{{ item.get_brand() }}</p>
+                        <p class="name">{{ item.get_stock_name() }}</p>
+                        <p class="weight">{{item.get_weight()}} {{item.get_unit()}}</p>
+                        <p class="price">${{ item.get_base_price() }}</p>
+                        <a href="cart/{{ item.get_id() }}">
+                            <button class="btn btn-light
+                            {% if not 'current' in session %}
+                            disabled
+                            {% endif %}
+                            ">Add to cart
+                            </button>
+                        </a>
+                    </div>
+                </a>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="../../static/js/shop_search.js"></script>
+{% endblock %}

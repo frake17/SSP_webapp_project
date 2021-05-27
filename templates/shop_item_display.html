@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Shop display{% endblock %}
+
+{% block content %}
+<link href="../../static/css/css.css" rel="stylesheet">
+<main class="top-display">
+    <div class="d-flex flex-row justify-content-around">
+        <div class="p-5 text-center">
+            <img class="p-2" height="300" src="../../static/img/uploaded/{{item.get_stock_name()}}.png" width="300">
+        </div>
+        <div class="p-5 text-left">
+            <h3 style="font-weight: bold;">${{item.get_base_price()}}</h3>
+            <h5>{{item.get_stock_name()}}</h5>
+            <p>{{item.get_weight()}}{{item.get_unit()}} | Brand: {{item.get_brand()}}</p>
+            {% if session.get('current', None) == 'ss_staff@gmail.com' or item.get_stock_left() == 0 %}
+            {% else %}
+            <a href="/cart/{{ item.get_id() }}">
+                <button class="btn btn-success btn-lg">Add to cart</button>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</main>
+<main class="bottom-display p-5">
+    <div>
+        <div class="d-flex flex-row justify-content-around">
+            <div>
+                <h4>Origin</h4>
+                <p>{{item.get_origin()}}</p>
+            </div>
+            <div>
+                <h4>Ingredients</h4>
+                <p>{{item.get_ingredients()}}</p>
+            </div>
+        </div>
+    </div>
+    <div class="d-flex flex-row justify-content-around">
+        <div>
+            <h4>Dietary</h4>
+            <p>{{item.get_dietary()}}</p>
+        </div>
+        <div>
+            <h4>Description</h4>
+            <p>{{item.get_description()}}</p>
+        </div>
+    </div>
+</main>
+{% endblock %}
+

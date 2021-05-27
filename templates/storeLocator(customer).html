@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Library Loan System - Profile{% endblock %}
+
+{% block content %}
+
+<h1 class="display-4">Store Locator</h1>
+
+<div>
+    {% if count == 0 %}
+    <p>There are no locations.</p>
+    {% elif count == 1 %}
+    <p>There is 1 location.</p>
+    {% else %}
+    <p>There are {{ count }} locations.</p>
+    {% endif %}
+</div>
+
+<div>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Neighbourhood</th>
+            <th>Address</th>
+            <th>Area</th>
+            <th>Availability</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for location in locations_list %}
+        <tr>
+            <td>{{ location.get_neighbourhood() }}</td>
+            <td>{{ location.get_address() }}</td>
+            <td>{{ location.get_area() }}</td>
+            <td>{{ location.get_availability() }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

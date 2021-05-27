@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %} Orders Assigned to Deliveryman{% endblock %}
+
+{% block content %}
+<h1 class="display-4">Orders Assigned</h1>
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link active" href="/deliverymen_orders">Orders</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/DeliverymenProfile">Profile</a>
+    </li>
+</ul>
+<br>
+<div>
+    {% if count == 0 %}
+    <p>There are no orders assigned to deliveryman.</p>
+    {% elif count == 1 %}
+    <p>There is 1 order assigned to deliveryman.</p>
+    {% else %}
+    <p>There are {{ count }} orders assigned to deliveryman.</p>
+    {% endif %}
+</div>
+<div>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>No.</th>
+            <th>Name of customer</th>
+            <th>Contact No.</th>
+            <th>Items</th>
+            <th>Address</th>
+            <th>Date</th>
+        <tr>
+        </thead>
+        <tbody>
+        {% set index = {'value': 0} %}
+        {% for order in orders_list %}
+        <tr>
+            <td>{{order.get_id()}}</td>
+            <td>{{order.get_name()}}</td>
+            <td>{{order.get_phone()}}</td>
+            <td>
+                {% for item in order.get_item() %}
+                {{item}} x {{order.get_item().get(item)}}
+                {% endfor %}
+            </td>
+            <td>{{order.get_location()}} {{order.get_level()}} {{order.get_door()}}, singapore
+                {{order.get_postal()}}
+            </td>
+            <td>{{order.get_date()}}</td>
+            {% if index.update({'value': (index.value + 1)}) %} {% endif %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

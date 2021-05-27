@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %} Orders Assigned to Deliveryman{% endblock %}
+
+{% block content %}
+<h1 class="display-4">Orders Assigned</h1>
+<!-- Nav tabs -->
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link" href="/All_Deliveries">Delivery</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="/All_Self_collection">Self-collection</a>
+    </li>
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="navbardrop">
+            Deliverymen
+        </a>
+        <div class="dropdown-menu">
+            <a class="dropdown-item" href="/Create_Deliverymen">Create Deliverymen</a>
+            <a class="dropdown-item" href="/Display_Deliverymen">Display Deliverymen</a>
+        </div>
+</ul>
+<br>
+<div>
+    {% if count == 0 %}
+    <p>There are no orders assigned to deliveryman.</p>
+    {% elif count == 1 %}
+    <p>There is 1 order assigned to deliveryman.</p>
+    {% else %}
+    <p>There are {{ count }} orders assigned to deliveryman.</p>
+    {% endif %}
+</div>
+<div>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>No.</th>
+            <th>Name of customer</th>
+            <th>Contact No.</th>
+            <th>Items</th>
+            <th>Address</th>
+            <th>Date</th>
+            <th></th>
+        <tr>
+        </thead>
+        <tbody>
+        {% set index = {'value': 0} %}
+        {% for order in order_list %}
+        <tr>
+            <td>{{order.get_id()}}</td>
+            <td>{{order.get_name()}}</td>
+            <td>{{order.get_phone()}}</td>
+            <td>
+                {% for item in order.get_item() %}
+                {{item}} x {{order.get_item().get(item)}}
+                {% endfor %}
+            </td>
+            <td>{{order.get_location()}} {{order.get_level()}} {{order.get_door()}}, singapore
+                {{order.get_postal()}}
+            </td>
+            <td>{{order.get_date()}}</td>
+            <td>
+                <form action="{{url_for('qing.deleteOrders', id=index.value,deliverymen_id=deliverymen_id)}}"
+                      method="POST">
+                    <!--        <input type="submit" value="Delete" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete {#user.get_first_name()#} {#user.get_last_name()#}?');">-->
+                    <!-- Button to Open the Modal -->
+                    <button class="btn btn-danger" data-target="#myModal_{{order.get_id()}}" data-toggle="modal"
+                            type="button">
+                        Delete
+                    </button>
+
+                    <!-- The Modal -->
+                    <div class="modal" id="myModal_{{order.get_id()}}">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+
+                                <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Delete Confirmation</h4>
+                                    <button class="close" data-dismiss="modal" type="button">&times;</button>
+                                </div>
+
+                                <!-- Modal body -->
+                                <div class="modal-body">
+                                    Are you sure you want to delete this order?
+                                </div>
+
+                                <!-- Modal footer -->
+                                <div class="modal-footer">
+                                    <input class="btn btn-danger" type="submit" value="Delete">
+                                    <button class="btn btn-secondary" data-dismiss="modal" type="button">Cancel</button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </td>
+            {% if index.update({'value': (index.value + 1)}) %} {% endif %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

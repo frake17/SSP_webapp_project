@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Supplier list{% endblock %}
+
+{% block head %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="../../static/js/supplier_search.js"></script>
+{% endblock %}
+
+{% block content %}
+{% if 'default_supplier' in session %}
+<div class="alert alert-success alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('default_supplier', None) }}.
+</div>
+{% elif 'deleted_supplier' in session %}
+<div class="alert alert-danger alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('deleted_supplier', None) }} was deleted.
+</div>
+{% elif 'updated_supplier' in session %}
+<div class="alert alert-warning alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('updated_supplier', None) }} was updated.
+</div>
+{% endif %}
+<h1 class="display-4">Supplier list</h1>
+<div>
+    {% if count == 0 %}
+    <p>There are no suppliers.</p>
+    {% elif count == 1 %}
+    <p>There is 1 supplier.</p>
+    {% else %}
+    <p>There are {{ count }} suppliers.</p>
+    {% endif %}
+</div>
+<div class="d-flex flex-row">
+    <div class="form-group p-2 mr-auto">
+        <input class="form-control" id="box" name="search" placeholder="Supplier" type="text">
+    </div>
+    <div class="dropdown p-2 mr-5 pr-5">
+        <button class="btn btn-warning dropdown-toggle" data-toggle="dropdown" type="button">
+            Sort By:
+        </button>
+        <div class="dropdown-menu">
+            <a class="dropdown-item" href="/suppliers/Supplier_AZ">By supplier name(A-Z)</a>
+            <a class="dropdown-item" href="/suppliers/supplier_ZA">By supplier name(Z-A)</a>
+            <a class="dropdown-item" href="/suppliers/For_AZ">By Supplier for(A-Z)</a>
+            <a class="dropdown-item" href="/suppliers/For_ZA">By Supplier for(Z-A)</a>
+        </div>
+    </div>
+</div>
+<div>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Supplier ID</th>
+            <th>Supplier Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Location</th>
+            <th>Stock</th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody id="tbody">
+        {% for supplier in supplier_list %}
+        <tr>
+            <td>{{ supplier.get_id() }}</td>
+            <td class="filter">{{ supplier.get_name() }}</td>
+            <td>{{ supplier.get_email() }}</td>
+            <td>{{ supplier.get_phone() }}</td>
+            <td>{{ supplier.get_location() }}</td>
+            <td>{{ supplier.get_stock() }}</td>
+            <td>
+                <a href="set_as_default/{{ supplier.get_id() }}">
+                    <button class="btn btn-light mx-n3">Set as default</button>
+                </a>
+            </td>
+            <td>
+                <a href="updateSupplier/{{ supplier.get_id() }}">
+                    <button class="btn btn-light">Edit</button>
+                </a>
+            </td>
+            <td>
+                <form action="{{url_for('kin.delete_supplier', id=supplier.get_id())}}" method="POST">
+                    <button class="btn btn-danger" data-target="#myModal_{{supplier.get_id()}}" data-toggle="modal"
+                            type="button">
+                        Delete
+                    </button>
+
+                    <!-- The Modal -->
+                    <div class="modal" id="myModal_{{supplier.get_id()}}">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+
+                                <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Delete Confirmation</h4>
+                                    <button class="close" data-dismiss="modal" type="button">&times;</button>
+                                </div>
+
+                                <!-- Modal body -->
+                                <div class="modal-body">
+                                    Are you sure you want to delete {{supplier.get_name()}}?
+                                </div>
+
+                                <!-- Modal footer -->
+                                <div class="modal-footer">
+                                    <input class="btn btn-danger" type="submit" value="Delete">
+                                    <button class="btn btn-secondary" data-dismiss="modal" type="button">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

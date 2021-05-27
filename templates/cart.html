@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Shopping cart{% endblock %}
+
+{% block head %}
+<link href="../../static/css/css.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+{% if 'not_enough' in session %}
+<div class="alert alert-danger alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    There isnt enough {{ session.pop('not_enough', None) }} to added more.
+</div>
+{% endif %}
+{% if not 'current' in session %}
+<p>Delivery available for above $200</p>
+{% endif %}
+<p id="margin_center"><span style="font-weight:bold;font-size:20px;">Your shopping cart: </span></p>
+<table border="" id="margin_center">
+    <tr>
+        <th>No.</th>
+        <th id="stretch">Items name</th>
+        <th>Quantity</th>
+        <th>+ / -</th>
+        <th>Total</th>
+    </tr>
+    {% for item in item_list %}
+    <tr>
+        <td>{{loop.index}}</td>
+        <td><span style="float:left;">{{ item.get_stock_name() }}</td>
+        <td id="center">{{ item.get_amount() }}</td>
+        <td>
+            <a href="add/{{item.get_id()}}">
+                <button class="btn btn-light"> +</button>
+            </a>
+            <a href="minus/{{item.get_id()}}">
+                <button class="btn btn-light"> -</button>
+            </a>
+        </td>
+        <td><span style="float:left;">${{ item.get_total() }}</span></td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <td colspan="5">Total amount: ${{ price }}</td>
+    </tr>
+</table>
+<p id="text_center">Choice of collection :
+    <a href="/delivery">
+        <button class="btn btn-light
+                            {% if not 'current' in session %}
+                            disabled
+                            {% endif %}
+        ">Delivery
+        </button>
+    </a>
+    <a href="self-collect">
+        <button class="btn btn-light">Self Collection</button>
+    </a>
+</p>
+<a href="clear_cart">
+    <button class="btn btn-danger" style="margin-left: 48%;">Clear cart</button>
+</a>
+{% endblock %}

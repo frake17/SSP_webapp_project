@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Self_collect order confirmation{% endblock %}
+
+{% block content %}
+<link href="../../static/css/css.css" rel="stylesheet">
+<style>
+    span {font-weight: bold;}
+
+</style>
+<div class="fluid-container">
+    <h1 style="text-align: center;">Order summary</h1>
+    <div class="summary" style="background-color: lightblue;">
+        <h2>Current order</h2>
+        <p><span>Order Id: </span>{{current.get_id()}}</p>
+        <p><span>Name: </span>{{current.get_name()}}</p>
+        <p><span>Phone Number: </span>{{current.get_number()}}</p>
+        <p><span>Location:  </span>{{current.get_location()}}</p>
+        <p><span>Date: </span>{{current.get_date()}}</p>
+        <p><span>Time: </span>{{current.get_time()}}</p>
+        <p><span>Card number: </span>{{current.get_card_no()}}</p>
+        <p><span>Expiry date: </span>{{current.get_exp()}}</p>
+        <p><span>CVV: </span>{{current.get_cvv()}}</p>
+        <p><span>Card type: </span>{{current.get_card()}}</p>
+        <p><span>Total amount: </span>${{total}}</p>
+        <a href="edit_collect_order/{{current.get_id()}}">
+            <button class="btn btn-light">Edit</button>
+        </a>
+        <a href="Delete_order/collect/{{current.get_id()}}/S">
+            <button class="btn btn-danger">Delete</button>
+        </a>
+        <a href="sent_order/collect/{{current.get_id()}}">
+            <button class="btn btn-success">Send order</button>
+        </a>
+    </div>
+</div>
+
+{% endblock %}
+

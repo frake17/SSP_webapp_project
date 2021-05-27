@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+{% for messages in get_flashed_messages() %}
+<div class="alert alert-warning alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ messages }}
+</div>
+{% endfor %}
+<style>
+    body {
+    overflow : hidden;
+    }
+
+    .container-fluid {
+    padding: 0;
+    }
+
+</style>
+<img src="static/img/home_img.jpeg" width="100%">
+{% endblock %}
+

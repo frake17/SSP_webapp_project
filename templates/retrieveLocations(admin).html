@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Library Loan System - Profile{% endblock %}
+
+{% block content %}
+{% if 'location_created' in session %}
+<div class="alert alert-success alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('location_created', None) }} was created.
+</div>
+{% elif 'location_deleted' in session %}
+<div class="alert alert-danger alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('location_deleted', None) }} was deleted.
+</div>
+{% endif %}
+<h1 class="display-4">Locations</h1>
+
+<div>
+    {% if count == 0 %}
+    <p>There are no locations.</p>
+    {% elif count == 1 %}
+    <p>There is 1 location.</p>
+    {% else %}
+    <p>There are {{ count }} locations.</p>
+    {% endif %}
+</div>
+
+<div>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Neighbourhood</th>
+            <th>Address</th>
+            <th>Area</th>
+            <th>Availability</th>
+            <th></th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for location in locations_list %}
+        <tr>
+            <td>{{ location.get_neighbourhood() }}</td>
+            <td>{{ location.get_address() }}</td>
+            <td>{{ location.get_area() }}</td>
+            <td>{{ location.get_availability() }}</td>
+            <td><a class="btn btn-warning" href="/updateLocation/{{location.get_location_id()}}">Update</a></td>
+            <td>
+                <form action="{{url_for('elly.delete_location', id=location.get_location_id())}}" method="POST">
+                    <button class="btn btn-danger" data-target="#myModal_{{location.get_location_id()}}" data-toggle="modal"
+                            type="button">
+                        Delete
+                    </button>
+
+                    <!-- The Modal -->
+                    <div class="modal" id="myModal_{{location.get_location_id()}}">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+
+                                <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Delete Confirmation</h4>
+                                    <button class="close" data-dismiss="modal" type="button">&times;</button>
+                                </div>
+
+                                <!-- Modal body -->
+                                <div class="modal-body">
+                                    Are you sure you want to delete {{location.get_address()}}?
+                                </div>
+
+                                <!-- Modal footer -->
+                                <div class="modal-footer">
+                                    <input class="btn btn-danger" type="submit" value="Delete">
+                                    <button class="btn btn-secondary" data-dismiss="modal" type="button">Cancel</button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

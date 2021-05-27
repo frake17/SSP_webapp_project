@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Update Customer{% endblock %}
+
+{% block content %}
+{% from "includes/_formHelper.html" import render_field %}
+
+<form action="" method="POST">
+    <div class="form-group" style="width: 20%">
+        {{ render_field(form.date, readonly=true, class="form-control") }}
+    </div>
+    <div class="form-row">
+        <div class="form-group col">
+            {{ render_field(form.cust_ic, readonly=true, class="form-control") }}
+        </div>
+        <div class="form-group col">
+            {{ render_field(form.cust_no, readonly=true, class="form-control") }}
+        </div>
+        <div class="form-group col">
+            {{ render_field(form.temp, readonly=true, class="form-control") }}
+        </div>
+        <div class="form-group col">
+            {{ render_field(form.time_enter, readonly=true, class="form-control") }}
+        </div>
+        <div class="form-group col">
+            {{ render_field(form.time_leave, class="form-control") }}
+        </div>
+    </div>
+    <input class="btn btn-primary" type="submit" value="Submit"/>
+</form>
+
+{% endblock %}

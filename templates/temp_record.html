@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Record - Entering{% endblock %}
+
+{% block content %}
+{% from "includes/_formHelper.html" import render_field %}
+{% if 'user_created' in session %}
+<div class="alert alert-success alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('user_created', None) }} was created.
+</div>
+{% endif %}
+
+<h1 class="display-6">Enter Customer's Details</h1>
+
+<form action="" method="POST">
+    <div class="form-group" style="width: 20%">
+        <label>Outlet</label>
+        <select class="form-control" name="location">
+            {% for location in locations_list %}
+            <option>{{ location.get_address() }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group" style="width: 20%">
+        {{ render_field(form.date, class="form-control") }}
+    </div>
+    <div class="form-row">
+        <div class="form-group col">
+            {{ render_field(form.cust_ic, class="form-control") }}
+        </div>
+        <div class="form-group col">
+            {{ render_field(form.cust_no, class="form-control") }}
+        </div>
+        <div class="form-group col">
+            {{ render_field(form.temp, class="form-control") }}
+        </div>
+        <div class="form-group col">
+            {{ render_field(form.time_enter, class="form-control") }}
+        </div>
+        <div class="form-group col">
+            {{ render_field(form.time_leave, readonly=true, class="form-control") }}
+        </div>
+    </div>
+    <input class="btn btn-primary" type="submit" value="Submit"/>
+</form>
+
+{% endblock %}

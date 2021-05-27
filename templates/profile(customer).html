@@ -1,0 +1,86 @@
+<style>
+table {
+  width: 60%;
+  border-collapse: collapse;
+  border: 1px solid black;
+  text-align: left;
+}
+td {
+  height: auto;
+  padding: 20px;
+}
+p {
+  border-style: solid;
+  border-width: 30%;
+  padding: 3px;
+  width: 100%
+}
+
+</style>
+
+{% extends "base.html" %}
+{% block title %}Library Loan System - Profile{% endblock %}
+
+{% block content %}
+{% if 'user_deleted' in session %}
+<div class="alert alert-danger alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('user_deleted', None) }} was deleted.
+</div>
+{% endif %}
+<h1 class="display-4">Profile</h1>
+
+<table>
+    {% for user in users_list %}
+    <tr>
+        <td><a class="btn btn-warning" href="/updateProfile/{{user.get_email()}}">Update Profile</a></td>
+        <td>First Name:</td>
+        <td><p>{{ user.get_first_name() }}</p></td>
+    </tr>
+    <tr>
+        <td><a class="btn btn-warning" href="/updatePassword/{{user.get_email()}}">Update Password</a></td>
+        <td>Last Name:</td>
+        <td><p>{{ user.get_last_name() }}</p></td>
+    </tr>
+    <tr>
+        <td>
+            <form action="{{url_for('elly.delete_acc', email=user.get_email())}}" method="POST">
+                <button class="btn btn-danger" data-target="#myModal_{{user.get_user_id()}}" data-toggle="modal"
+                        type="button">
+                    Delete Account
+                </button>
+
+                <!-- The Modal -->
+                <div class="modal" id="myModal_{{user.get_user_id()}}">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <!-- Modal Header -->
+                            <div class="modal-header">
+                                <h4 class="modal-title">Delete Confirmation</h4>
+                                <button class="close" data-dismiss="modal" type="button">&times;</button>
+                            </div>
+
+                            <!-- Modal body -->
+                            <div class="modal-body">
+                                Are you sure you want to delete your account?
+                            </div>
+
+                            <!-- Modal footer -->
+                            <div class="modal-footer">
+                                <input class="btn btn-danger" type="submit" value="Delete">
+                                <button class="btn btn-secondary" data-dismiss="modal" type="button">Cancel</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </td>
+        <td>Email:</td>
+        <td><p>{{ user.get_email() }}</p></td>
+    </tr>
+</table>
+{% endfor %}
+{% endblock %}

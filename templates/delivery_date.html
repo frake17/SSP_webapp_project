@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Delivery{% endblock %}
+
+{% block head %}
+<link href="../../static/css/css.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+{% if 'invalid_date' in session %}
+<div class="alert alert-danger alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('invalid_date', None) }}
+</div>
+{% endif %}
+<div class="delivery">
+    <p>Delivery fee is <span style="font-weight:bold;font-size:16px">$3</span>. Delivery available <span
+            style="font-weight:bold;font-size:16px">above $200</span>.</p>
+    <form action="" class="calendar form-group" method="POST">
+        <label for="Date for delivery">Date for delivery(max: 60days): </label>
+        <input class="form-control" name="date" required type="date">
+        <br>
+        <p>Total amount will be ${{ total }}</p>
+        {% if total < 200 %}
+        <input class="btn btn-light" disabled type="submit" value="continue">
+        {% elif total >= 200 %}
+        <input class="btn btn-light" type="submit" value="continue">
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

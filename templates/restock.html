@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Restock order{% endblock %}
+
+{% block content %}
+{% from "includes/_formHelper.html" import render_field %}
+
+<h1 class="display-4">Restock form</h1>
+<a href="/create_supplier/{{id}}">
+    <button class="btn btn-light my-1">Add supplier</button>
+</a>
+<a href="/suppliers">
+    <button class="btn btn-light my-1">View suppliers</button>
+</a>
+<form action="" enctype=multipart/form-data method="POST">
+    <div class="form-group">
+        {% if length > 0 %}
+        <select class="form-control" name="supplier">
+            {% for item in supplier_list %}
+            <option>{{item.get_name()}}</option>
+            {% endfor %}
+        </select>
+        {% else %}
+        <p>No supplier has been created</p>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="amount">Amount to order</label>
+        <input class="form-control" name="amount" type="number">
+    </div>
+    <input class="btn btn-primary" type="submit" value="Add"/>
+</form>
+{% endblock %}
