@@ -3,6 +3,7 @@ from datetime import datetime, date
 from wtforms import Form, StringField, RadioField, SelectField, TextAreaField, validators, IntegerField, DateField, \
     FloatField, TimeField, ValidationError, PasswordField, SubmitField
 from wtforms.fields.html5 import EmailField
+from flask_wtf import Form, RecaptchaField
 
 
 class Item(Form):
@@ -166,6 +167,7 @@ class SignUp(Form):
     email = StringField('Email', [validators.Length(min=1, max=150), validators.DataRequired(), validators.Email()])
     password = PasswordField('Password', [validators.DataRequired(), validators.EqualTo('confirm_password')])
     confirm_password = PasswordField('Confirm Password')
+    recaptcha = RecaptchaField()
     submit = SubmitField('Sign Up')
 
 

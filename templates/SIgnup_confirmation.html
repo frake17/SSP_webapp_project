@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Library Loan System - Sign Up{% endblock %}
+
+{% block content %}
+{% from "includes/_formHelper.html" import render_field %}
+<style>
+    body{
+        background-color: LightGray;
+    }
+</style>
+<div class="w-25 bg-white m-auto p-3 align-middle">
+    <p>An code has been sent to your email</p>
+    <p>Please input your code below: </p>
+    <input type="text" required>
+    <input type="submit">
+</div>
+{% endblock %}

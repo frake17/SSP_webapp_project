@@ -193,9 +193,9 @@ def Create_Deliverymen():
             print("Error in retrieving Users from storage.db.")
 
         deliverymen = User.Deliverymen(create_Deliverymen_form.first_name.data, create_Deliverymen_form.last_name.data,
-                                create_Deliverymen_form.email.data, create_Deliverymen_form.gender.data,
-                                create_Deliverymen_form.contact_no.data, create_Deliverymen_form.regions.data,
-                                create_Deliverymen_form.remarks.data)
+                                       create_Deliverymen_form.email.data, create_Deliverymen_form.gender.data,
+                                       create_Deliverymen_form.contact_no.data, create_Deliverymen_form.regions.data,
+                                       create_Deliverymen_form.remarks.data)
 
         deliverymen_dict[deliverymen.get_Deliverymen_id()] = deliverymen
         db['Deliverymen'] = deliverymen_dict
@@ -224,7 +224,7 @@ def Display_Deliverymen(id):
     try:
         users_dict = db['Deliverymen']
         assign_dict = db['assignDeliverymen']
-        if id != None:
+        if id is not None:
             order_list = assign_dict.get(id)
 
     except:
