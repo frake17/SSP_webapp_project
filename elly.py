@@ -76,6 +76,11 @@ def sighup_confirmation():
     return render_template('Signup_confirmation.html')
 
 
+@elly.route('/Account_created', methods=['GET', 'POST'])
+def account_created():
+    return render_template('Account_created.html')
+
+
 @elly.route('/retrieveUsers')
 def retrieve_users():
     users_dict = {}
