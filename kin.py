@@ -993,3 +993,9 @@ def set_default(supplier_id):
     session['default_supplier'] = current_supplier.get_name() + ' is set as default for ' + current_supplier.get_stock()
 
     return redirect(url_for('kin.stock'))
+
+
+@kin.route('/manage_account')
+def mananage_account():
+    user_list = [1]
+    return render_template('Manage_staff_accounts.html', users_list = user_list)
