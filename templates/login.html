@@ -3,9 +3,9 @@
 
 {% block content %}
 {% from "includes/_formHelper.html" import render_field %}
-
-<h1 class="display-4">Login</h1>
-
+<link rel="stylesheet" href="/static/css/login.css">
+<h1 class="display-4 text-center">Login</h1>
+<!--
 <form action="" method="POST">
     <div class="form-group">
         {{ render_field(form.email, class="form-control") }}
@@ -14,6 +14,26 @@
         {{ render_field(form.password, class="form-control") }}
     </div>
     <input class="btn btn-primary" type="submit" value="Login"/>
+</form>
+-->
+<form method="POST" action="">
+    <div class="imgcontainer">
+        <img src="/static/img/login.png" alt="Logo" class="logo">
+    </div>
+
+    <div class="container">
+        <label for="username"><br>Username</br></label>
+        <input type="text" placeholder="Enter your username" name="username" required>
+
+        <label for="passwd"><br>Password</br></label>
+        <input type="password" placeholder="Enter your password" name="passwd" required>
+
+        <label for="authenticate"><br>Authentication Code</br></label>
+        <input type="text" placeholder="Enter code sent to email" name="authenticate" required>
+        <span class="authenticate"><a href="#">Send code to your email</a></span>
+
+        <button type="Submit">Login</button>
+    </div>
 </form>
 
 {% endblock %}
