@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Retrieve Users{% endblock %}
+{% block title %}Staffs account{% endblock %}
 
 {% block content %}
 {% if 'user_deleted' in session %}
@@ -8,29 +8,34 @@
     {{ session.pop('user_deleted', None) }} was deleted.
 </div>
 {% endif %}
-<h1 class="display-4">Retrieve Users</h1>
+<h1 class="display-4">Staffs account</h1>
 
-<div>
-    {% if count == 0 %}
-    <p>There are no users.</p>
-    {% elif count == 1 %}
-    <p>There is 1 user.</p>
-    {% else %}
-    <p>There are {{ count }} users.</p>
-    {% endif %}
-    <ul style="float:right; padding-right:116px;" class="navbar-nav ml-auto mr-1"><li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="user">
-                Sort by
-            </a>
-            <div class="dropdown-menu">
-
-                <a class="dropdown-item" href=#>Latest login activity</a>
-                <a class="dropdown-item" href=#>Oldest login activity</a>
-                <a class="dropdown-item" href=#>New user</a>
-                <a class="dropdown-item" href=#>Old user</a>
-
-            </div>
-        </li></ul>
+<div class="d-flex flex-row align-items-baseline justify-content-between">
+    <div class="text-center">
+        {% if count == 0 %}
+        <p>There are no users.</p>
+        {% elif count == 1 %}
+        <p>There is 1 user.</p>
+        {% else %}
+        <p>There are {{ count }} users.</p>
+        {% endif %}
+        </div>
+    <div class="d-inline-flex flex-row mb-2">
+        <ul class="navbar-nav ml-auto mr-2">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="user">
+                    Sort by
+                </a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href=#>Latest login activity</a>
+                    <a class="dropdown-item" href=#>Oldest login activity</a>
+                    <a class="dropdown-item" href=#>New user</a>
+                    <a class="dropdown-item" href=#>Old user</a>
+                </div>
+            </li>
+        </ul>
+        <button class="btn bg-info mr-2">Add account</button>
+    </div>
 </div>
 
 <div>
@@ -42,8 +47,9 @@
             <th>Email</th>
             <th>Staff ID</th>
             <th>Branch </th>
+            <th>Role</th>
             <th></th>
-
+            <th></th>
         </tr>
         </thead>
         <tbody>
@@ -55,19 +61,17 @@
             <td>(Email)</td>
             <td>(Staff ID)</td>
             <td>(Branch)</td>
-            <td><button class="btn btn-warning" data-toggle="modal"
-                            type="button">
-                        Disable
-                    </button></td>
+            <td>(Role)</td>
+            <td><button class="btn btn-warning">Edit</button> </td>
             <td>
-                <form action="{{url_for('elly.delete_user', email=user.get_email())}}" method="POST">
-                    <button class="btn btn-danger" data-target="#myModal_{{user.get_user_id()}}" data-toggle="modal"
+                <form action="" method="POST">
+                    <button class="btn btn-danger" data-target="#myModal_#" data-toggle="modal"
                             type="button">
                         Delete
                     </button>
 
                     <!-- The Modal -->
-                    <div class="modal" id="myModal_{{user.get_user_id()}}">
+                    <div class="modal" id="myModal_#">
                         <div class="modal-dialog">
                             <div class="modal-content">
 
@@ -79,7 +83,7 @@
 
                                 <!-- Modal body -->
                                 <div class="modal-body">
-                                    Are you sure you want to delete {{user.get_first_name()}} {{user.get_last_name()}}?
+                                    Are you sure you want to delete #?
                                 </div>
 
                                 <!-- Modal footer -->
