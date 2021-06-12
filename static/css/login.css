@@ -46,3 +46,7 @@ img.logo {
 span.authenticate {
     padding-top: 5px;
 }
+
+.optional_question {
+    display: none;
+}

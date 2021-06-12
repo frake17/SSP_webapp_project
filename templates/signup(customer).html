@@ -4,6 +4,7 @@
 {% block content %}
 {% from "includes/_formHelper.html" import render_field %}
 
+<script src="/static/js/optional_question.js"></script>
 <h1 class="display-4 text-center">Sign Up</h1>
 <link rel="stylesheet" href="/static/css/login.css">
 <form action="" method="POST" class="form-container">
@@ -26,6 +27,25 @@
         <!-- Implement into wt-forms -->
         <div class="form-group">
             {{ render_field(form.confirm_password, class="form-control") }}
+        </div>
+        <button onclick="myFunction()">Optional information to set</button>
+        <div id="optional_question" class="optional_question">
+            <div class="form-group">
+                <label>Phone number</label>
+                <input type="number" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>card number</label>
+                <input type="number" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>card expiry date</label>
+                <input type="text" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>card CVV</label>
+                <input type="number" class="form-control">
+            </div>
         </div>
             <div class="form-group">
             <label>Security question</label>
