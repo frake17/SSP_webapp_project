@@ -23,7 +23,7 @@ elly = Blueprint('elly', __name__, template_folder='templates', static_folder='s
 def signup():
     signup_form = SignUp(request.form)
     msg = ''
-    if request.method == 'POST' and signup_form.validate():
+    if request.method == 'POST':
         users_dict = {}
         db = shelve.open('storage.db', 'c')
 
@@ -62,22 +62,26 @@ def signup():
         email = signup_form.email.data
         password = signup_form.password.data
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s)', (first_name, last_name, password, email,))
+        cursor.execute('INSERT INTO customers_test VALUES (NULL, %s, %s, %s, %s)', (first_name, last_name, email, password,))
         mysql.connection.commit()
         msg = 'You have successfully registered!'
 
-        return redirect(url_for('elly.login'))
+        return redirect(url_for('elly.signup_confirmation'))
 
     return render_template('signup(customer).html', form=signup_form)
 
 
 @elly.route('/signup_confirmation', methods=['GET', 'POST'])
-def sighup_confirmation():
+def signup_confirmation():
+    if request.method == 'POST':
+        return redirect(url_for('elly.account_created'))
     return render_template('Signup_confirmation.html')
 
 
 @elly.route('/Account_created', methods=['GET', 'POST'])
 def account_created():
+    if request.method=='POST':
+        return redirect(url_for('home'))
     return render_template('Account_created.html')
 
 
