@@ -166,7 +166,7 @@ class SignUp(Form):
     last_name = StringField('Last Name', [validators.Length(min=1, max=150), validators.DataRequired()])
     email = StringField('Email', [validators.Length(min=1, max=150), validators.DataRequired(), validators.Email()])
     password = PasswordField('Password', [validators.DataRequired(), validators.EqualTo('confirm_password')])
-    confirm_password = PasswordField('Confirm Password')
+    confirm_password = PasswordField('Confirm Password', [validators.DataRequired, validators.EqualTo('password')])
     recaptcha = RecaptchaField()
     submit = SubmitField('Sign Up')
 
