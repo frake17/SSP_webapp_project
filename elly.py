@@ -6,6 +6,10 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import Location
 import User
 from Forms import SignUp, Login, CreateLocation, UpdateProfile, UpdatePassword
+# SSP CODES
+from flask_recaptcha import ReCaptcha
+import requests
+import json
 
 elly = Flask(__name__)
 elly.secret_key = 'any_random_string'
@@ -15,6 +19,7 @@ elly.config['MYSQL_HOST'] = 'localhost'
 elly.config['MYSQL_USER'] = 'root'
 elly.config['MYSQL_PASSWORD'] = '100carbook'
 elly.config['MYSQL_DB'] = 'pythonlogin'
+recaptcha = ReCaptcha(app=elly)
 mysql = MySQL(elly)
 elly = Blueprint('elly', __name__, template_folder='templates', static_folder='static')
 
@@ -23,7 +28,7 @@ elly = Blueprint('elly', __name__, template_folder='templates', static_folder='s
 def signup():
     signup_form = SignUp(request.form)
     msg = ''
-    if request.method == 'POST':
+    if request.method == 'POST' :
         users_dict = {}
         db = shelve.open('storage.db', 'c')
 
@@ -57,16 +62,27 @@ def signup():
         session['user_created'] = user.get_first_name() + ' ' + user.get_last_name()
 
         # MySQL SSP Codes
-        first_name = signup_form.first_name.data
-        last_name = signup_form.last_name.data
-        email = signup_form.email.data
-        password = signup_form.password.data
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('INSERT INTO customers_test VALUES (NULL, %s, %s, %s, %s)', (first_name, last_name, email, password,))
-        mysql.connection.commit()
-        msg = 'You have successfully registered!'
+        r = requests.post('https://www.google.com/recaptcha/api/siteverify',
+                          data={'secret':
+                                '6Lf15hYbAAAAAMq2XaVag56w4fFCNmSo9WkgxOBh',
+                                'response':
+                                    request.form['g-recaptcha-response']})
 
-        return redirect(url_for('elly.signup_confirmation'))
+        google_response = json.loads(r.text)
+        print('JSON: ', google_response)
+
+        if google_response['success']:
+
+            first_name = signup_form.first_name.data
+            last_name = signup_form.last_name.data
+            email = signup_form.email.data
+            password = signup_form.password.data
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('INSERT INTO customers_test VALUES (NULL, %s, %s, %s, %s)', (first_name, last_name, email, password,))
+            mysql.connection.commit()
+            msg = 'You have successfully registered!'
+
+            return redirect(url_for('elly.signup_confirmation'))
 
     return render_template('signup(customer).html', form=signup_form)
 
