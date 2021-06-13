@@ -80,7 +80,7 @@ def signup_confirmation():
 
 @elly.route('/Account_created', methods=['GET', 'POST'])
 def account_created():
-    if request.method=='POST':
+    if request.method == 'POST':
         return redirect(url_for('home'))
     return render_template('Account_created.html')
 
