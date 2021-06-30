@@ -35,12 +35,12 @@ p {
     <tr>
         <td><a class="btn btn-warning" href="/updateProfile/{{user.get_email()}}">Update Profile</a></td>
         <td>First Name:</td>
-        <td><p>{{ user.get_first_name() }}</p></td>
+        <td><p>{{ account['first_name'] }}</p></td>
     </tr>
     <tr>
         <td><a class="btn btn-warning" href="/updatePassword/{{user.get_email()}}">Update Password</a></td>
         <td>Last Name:</td>
-        <td><p>{{ user.get_last_name() }}</p></td>
+        <td><p>{{ account['last_name'] }}</p></td>
     </tr>
     <tr>
         <td>
@@ -79,7 +79,7 @@ p {
             </form>
         </td>
         <td>Email:</td>
-        <td><p>{{ user.get_email() }}</p></td>
+        <td><p>{{ account['email'] }}</p></td>
     </tr>
     <tr>
         <td><a class="btn btn-warning" href="/loginActivity(cust)">Login Activity</a></td>

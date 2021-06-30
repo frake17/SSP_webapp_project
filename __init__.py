@@ -1,5 +1,7 @@
 from flask import Flask, render_template
-
+from flask_mysqldb import MySQL
+import MySQLdb.cursors
+import re
 from alicia import alicia
 from elly import elly
 from kin import kin
@@ -17,6 +19,17 @@ app.register_blueprint(alicia)
 app.register_blueprint(elly)
 app.register_blueprint(kin)
 app.register_blueprint(qing)
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = '100carbook'
+app.config['MYSQL_DB'] = 'pythonlogin'
+
+app.config['RECAPTCHA_USE_SSL'] = False
+app.config['RECAPTCHA_PUBLIC_KEY'] = '6Lf15hYbAAAAAK_KyjqVXkqKhFe6NUt-4HpzAIek'
+app.config['RECAPTCHA_PRIVATE_KEY'] = '6Lf15hYbAAAAAMq2XaVag56w4fFCNmSo9WkgxOBh'
+app.config['RECAPTCHA_OPTIONS'] = {'theme': 'white'}
+
+mysql = MySQL(app)
 
 
 def allowed_file(filename):
