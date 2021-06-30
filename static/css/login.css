@@ -3,14 +3,10 @@ body {
     vertical-align: middle;
 }
 
-form {
-    border: 3px solid #f1f1f1;
-}
-
 input[name="username"], input[name="passwd"], input[name="authenticate"] {
     width: 100%;
     padding: 12px 20px;
-    margin: 8px 0;
+    margin: 4px 0;
     display: inline-block;
     border: 1px solid #ccc;
 }
@@ -38,15 +34,11 @@ img.logo {
 }
 
 .container {
-    width: 20%;
+    width: 25%;
     margin: auto;
     padding: 16px;
 }
 
 span.authenticate {
     padding-top: 5px;
-}
-
-.optional_question {
-    display: none;
 }
