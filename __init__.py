@@ -41,7 +41,7 @@ def allowed_file(filename):
 def home():
     return render_template('home.html')
 
-@app.route("/new_login", methods=['GET', 'POST'])
+@app.route("/login", methods=['GET', 'POST'])
 def login():
     if request.method == "POST":
         if request.form['btn'] == "login_btn":
