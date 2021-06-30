@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="static/css/login.css">
+
+
+<form method="POST" action="">
+    <div class="imgcontainer">
+        <img src="static/img/login.png" alt="Logo" class="logo">
+    </div>
+
+    <div class="container">
+        <label for="authenticate"><br>Authentication Code</br></label>
+        <input type="text" placeholder="Enter code sent to email" name="authenticate" required>
+        <span class="authenticate"><a href="#">Resend code to your email if you have not received it</a></span>
+
+        <button type="Submit">Authenticate</button>
+    </div>
+</form>
+
+{% endblock %}
