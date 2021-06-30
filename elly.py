@@ -12,6 +12,10 @@ elly.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 elly.config["SESSION_PERMANENT"] = False
 elly = Blueprint('elly', __name__, template_folder='templates', static_folder='static')
 
+@elly.route('/loginActivity(cust)')
+def loginActivity():
+    return render_template('loginActivity(cust).html')
+
 
 @elly.route('/signup', methods=['GET', 'POST'])
 def signup():

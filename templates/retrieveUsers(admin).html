@@ -18,6 +18,19 @@
     {% else %}
     <p>There are {{ count }} users.</p>
     {% endif %}
+    <ul style="float:right; padding-right:116px;" class="navbar-nav ml-auto mr-1"><li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="user">
+                Sort by
+            </a>
+            <div class="dropdown-menu">
+
+                <a class="dropdown-item" href=#>Latest login activity</a>
+                <a class="dropdown-item" href=#>Oldest login activity</a>
+                <a class="dropdown-item" href=#>New user</a>
+                <a class="dropdown-item" href=#>Old user</a>
+
+            </div>
+        </li></ul>
 </div>
 
 <div>
@@ -27,15 +40,24 @@
             <th>First Name</th>
             <th>Last Name</th>
             <th>Email</th>
+            <th>Last login</th>
             <th></th>
+            <th></th>
+
         </tr>
         </thead>
         <tbody>
         {% for user in users_list %}
+
         <tr>
             <td>{{ user.get_first_name() }}</td>
             <td>{{ user.get_last_name() }}</td>
             <td>{{ user.get_email() }}</td>
+            <td>26 May 2021</td>
+            <td><button class="btn btn-warning" data-toggle="modal"
+                            type="button">
+                        Disable
+                    </button></td>
             <td>
                 <form action="{{url_for('elly.delete_user', email=user.get_email())}}" method="POST">
                     <button class="btn btn-danger" data-target="#myModal_{{user.get_user_id()}}" data-toggle="modal"
@@ -70,7 +92,9 @@
                     </div>
 
                 </form>
+
             </td>
+
         </tr>
         {% endfor %}
         </tbody>
