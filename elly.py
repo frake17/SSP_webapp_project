@@ -5,12 +5,43 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import Location
 import User
 from Forms import SignUp, Login, CreateLocation, UpdateProfile, UpdatePassword
+from Forms import SignUp, Login, CreateLocation, UpdateProfile, UpdatePassword, optional_signup, recaptcha_form
+# SSP CODES
+from flask_mysqldb import MySQL
+import MySQLdb.cursors
+from flask_recaptcha import ReCaptcha
+import requests
+import json
+from flask_mail import Mail, Message
+from random import randint
+from datetime import datetime, timedelta
 
 elly = Flask(__name__)
 elly.secret_key = 'any_random_string'
 elly.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 elly.config["SESSION_PERMANENT"] = False
+
+
+# SSP CODES
+elly.config['MAIL_SERVER'] = 'smtp.gmail.com'
+elly.config['MAIL_PORT'] = 465
+elly.config['MAIL_USERNAME'] = 'sspproject404@gmail.com'
+elly.config['MAIL_PASSWORD'] = 'SSP123456'
+elly.config['MAIL_USE_TLS'] = False
+elly.config['MAIL_USE_SSL'] = True
+elly.config['MYSQL_HOST'] = 'localhost'
+elly.config['MYSQL_USER'] = 'root'
+elly.config['MYSQL_PASSWORD'] = '100carbook'
+elly.config['MYSQL_DB'] = 'pythonlogin'
+recaptcha = ReCaptcha(app=elly)
+mysql = MySQL(elly)
+mail = Mail(elly)
 elly = Blueprint('elly', __name__, template_folder='templates', static_folder='static')
+
+@elly.route('/loginActivity(cust)')
+def loginActivity():
+    return render_template('loginActivity(cust).html')
+
 
 @elly.route('/loginActivity(cust)')
 def loginActivity():
@@ -21,41 +52,142 @@ def loginActivity():
 def signup():
     signup_form = SignUp(request.form)
     if request.method == 'POST' and signup_form.validate():
-        users_dict = {}
-        db = shelve.open('storage.db', 'c')
+        optional_form = optional_signup(request.form)
+        recaptcha_forms = recaptcha_form(request.form)
+        msg = ''
+        print(signup_form.validate())
+        if request.method == 'POST' and signup_form.validate() and optional_form.validate():
 
-        users_list = []
-        for key in users_dict:
-            user = users_dict.get(key)
-            if key == signup_form.email.data:
-                flash("Account already exist")
-                return redirect(url_for('home'))
+            users_dict = {}
+            db = shelve.open('storage.db', 'c')
 
-        try:
+            users_list = []
+            for key in users_dict:
+                user = users_dict.get(key)
+                if key == signup_form.email.data:
+                    flash("Account already exist")
+                    return redirect(url_for('home'))
+
+            try:
+                users_dict = db['Users']
+            except:
+                print("Error in retrieving Users from storage.db.")
+
+            user = User.User(signup_form.first_name.data, signup_form.last_name.data, signup_form.email.data,
+                             signup_form.password.data)
+            print("===user====", user)
+            users_dict[user.get_email()] = user
+            db['Users'] = users_dict
+
+            # Test codes
             users_dict = db['Users']
-        except:
-            print("Error in retrieving Users from storage.db.")
 
-        user = User.User(signup_form.first_name.data, signup_form.last_name.data, signup_form.email.data,
-                         signup_form.password.data)
-        print("===user====", user)
-        users_dict[user.get_email()] = user
-        db['Users'] = users_dict
+            user = users_dict[user.get_email()]
+            print(user.get_first_name(), user.get_last_name(), "was stored in storage.db successfully with user_id ==",
+                  user.get_user_id())
 
-        # Test codes
-        users_dict = db['Users']
+            db.close()
 
-        user = users_dict[user.get_email()]
-        print(user.get_first_name(), user.get_last_name(), "was stored in storage.db successfully with user_id ==",
-              user.get_user_id())
+            session['user_created'] = user.get_first_name() + ' ' + user.get_last_name()
 
-        db.close()
+            # MySQL SSP Codes
+            r = requests.post('https://www.google.com/recaptcha/api/siteverify',
+                              data={'secret':
+                                    '6Lf15hYbAAAAAMq2XaVag56w4fFCNmSo9WkgxOBh',
+                                    'response':
+                                        request.form['g-recaptcha-response']})
 
-        session['user_created'] = user.get_first_name() + ' ' + user.get_last_name()
+            google_response = json.loads(r.text)
+            print('JSON: ', google_response)
 
-        return redirect(url_for('elly.login'))
+            if google_response['success']:
 
-    return render_template('signup(customer).html', form=signup_form)
+                if optional_form.Phone_number.data != '':
+                    phone_num = optional_form.Phone_number.data
+                else:
+                    phone_num = 'NULL'
+
+                if optional_form.card_number.data != '':
+                    card_num = optional_form.card_number.data
+                else:
+                    card_num = 'NULL'
+
+                if optional_form.exp_date.data != '':
+                    exp_date = optional_form.exp_date.data
+                else:
+                    exp_date = 'NULL'
+
+                if optional_form.CVV.data != '':
+                    CVV = optional_form.CVV.data
+                else:
+                    CVV = 'NULL'
+
+                current_time = datetime.now()
+                conformation_code = randint(000000, 999999)
+                first_name = signup_form.first_name.data
+                last_name = signup_form.last_name.data
+                email = signup_form.email.data
+                password = signup_form.password.data
+                security_qn = signup_form.security_question.data
+                security_ans = signup_form.security_answer.data
+                cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                cursor.execute('INSERT INTO customers_temp VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                               (first_name, last_name, email, password, phone_num, card_num, exp_date, CVV, security_qn, security_ans))
+                mysql.connection.commit()
+                session['fname'] = first_name
+                session['lname'] = last_name
+                session['EMAIL'] = email
+                msg = Message('Hello', sender='smtp.gmail.com', recipients=[email])
+                msg.body = "Conformation code is: %d" % conformation_code
+                mail.send(msg)
+
+                return redirect(url_for('elly.signup_confirmation', conformation_code=conformation_code, date = current_time))
+
+        return render_template('signup(customer).html', form=signup_form, optional_form=optional_form, recap = recaptcha_forms)
+
+
+@elly.route('/signup_confirmation/<conformation_code>', methods=['GET', 'POST'])  # SSP CODE
+def signup_confirmation(conformation_code, date):
+    time_change = timedelta(minutes=15)
+    Changed_time = date + time_change
+    first_name = session['fname']
+    last_name = session['lname']
+    if request.method == 'POST':
+        code = request.form['confirmation']
+        if int(code) == int(conformation_code):
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('INSERT INTO customers SELECT * FROM customers_temp WHERE fname = %s and lname = %s'
+                           , (first_name, last_name))
+            cursor.execute('DELETE FROM customers_temp WHERE fname = %s and lname = %s', (first_name, last_name))
+            mysql.connection.commit()
+            return redirect(url_for('elly.account_created'))
+        elif datetime.now() < Changed_time:
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('DELETE FROM customers_temp WHERE fname = %s and lname = %s', (first_name, last_name))
+            mysql.connection.commit()
+            return redirect(url_for('elly.signup'))
+        else:
+            return redirect(url_for('elly.signup_confirmation', conformation_code=conformation_code))
+    return render_template('Signup_confirmation.html')
+
+
+@elly.route('/resend', methods=['POST', 'GET'])
+def resend():
+    current_time = datetime.now()
+    email = session.get('EMAIL')
+    conformation_code = randint(000000, 999999)
+    msg = Message('Hello', sender='smtp.gmail.com', recipients=[email])
+    msg.body = "Conformation code is: %d" % conformation_code
+    mail.send(msg)
+
+    return redirect(url_for('elly.signup_confirmation', conformation_code=conformation_code, date=current_time))
+
+
+@elly.route('/Account_created', methods=['GET', 'POST'])
+def account_created():
+    if request.method == 'POST':
+        return redirect(url_for('home'))
+    return render_template('Account_created.html')
 
 
 @elly.route('/retrieveUsers')
