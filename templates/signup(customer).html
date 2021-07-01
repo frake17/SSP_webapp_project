@@ -3,11 +3,12 @@
 
 {% block content %}
 {% from "includes/_formHelper.html" import render_field %}
-
+<script src='https://www.google.com/recaptcha/api.js'></script>
 <script src="/static/js/optional_question.js"></script>
 <h1 class="display-4 text-center">Sign Up</h1>
 <link rel="stylesheet" href="/static/css/login.css">
 <form action="" method="POST" class="form-container">
+    {{ form.csrf_token() }}
     <div class="imgcontainer">
         <img src="/static/img/login.png" alt="Logo" class="logo">
     </div>
@@ -28,38 +29,28 @@
         <div class="form-group">
             {{ render_field(form.confirm_password, class="form-control") }}
         </div>
+       <div class="form-group">
+           {{ render_field(form.security_question, class='form-control') }}
+        </div>
+       <div class="form-group">
+           {{ render_field(form.security_answer, class='form-control') }}
+        </div>
         <button onclick="myFunction()">Optional information to set</button>
         <div id="optional_question" class="optional_question">
             <div class="form-group">
-                <label>Phone number</label>
-                <input type="number" class="form-control">
+                {{ render_field(optional_form.Phone_number, class='form-control') }}
             </div>
             <div class="form-group">
-                <label>card number</label>
-                <input type="number" class="form-control">
+                {{ render_field(optional_form.card_number, class='form-control') }}
             </div>
             <div class="form-group">
-                <label>card expiry date</label>
-                <input type="text" class="form-control">
+                {{ render_field(optional_form.exp_date, class='form-control') }}
             </div>
             <div class="form-group">
-                <label>card CVV</label>
-                <input type="number" class="form-control">
+                {{ render_field(optional_form.CVV, class='form-control') }}
             </div>
         </div>
-            <div class="form-group">
-            <label>Security question</label>
-            <select class="form-control">
-                <option>Option 1</option>
-                <option>Option 2</option>
-                <option>Option 3</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <input class="form-control" required placeholder="Security question answer">
-        </div>
-        {{ form.recaptcha }}
-
+        {{ recap.recaptcha }}
        <button class="bg-info">Sign up</button>
    </div>
 </form>

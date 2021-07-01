@@ -28,6 +28,8 @@ app.config['RECAPTCHA_USE_SSL'] = False
 app.config['RECAPTCHA_PUBLIC_KEY'] = '6Lf15hYbAAAAAK_KyjqVXkqKhFe6NUt-4HpzAIek'
 app.config['RECAPTCHA_PRIVATE_KEY'] = '6Lf15hYbAAAAAMq2XaVag56w4fFCNmSo9WkgxOBh'
 app.config['RECAPTCHA_OPTIONS'] = {'theme': 'white'}
+app.config['RECAPTCHA_PARAMETERS '] = {'hl': 'pt'}
+
 
 mysql = MySQL(app)
 
@@ -52,6 +54,20 @@ def login():
 @app.route("/authenticate", methods=['GET', 'POST'])
 def authenticate():
     return render_template('authenticate.html')
+
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    if request.method == "POST":
+        if request.form['btn'] == "login_btn":
+            return redirect(url_for("authenticate"))
+
+    return render_template('login.html')
+
+
+@app.route("/authenticate", methods=['GET', 'POST'])
+def authenticate():
+    return render_template('authenticate.html')
+
 
 @app.errorhandler(404)
 def page_not_found(e):

@@ -161,14 +161,53 @@ class Supplier(Form):
             raise ValidationError('Only digits are allowed')
 
 
+class recaptcha_form(Form):
+    recaptcha = RecaptchaField()
+
+
 class SignUp(Form):
     first_name = StringField('First Name', [validators.Length(min=1, max=150), validators.DataRequired()])
     last_name = StringField('Last Name', [validators.Length(min=1, max=150), validators.DataRequired()])
     email = StringField('Email', [validators.Length(min=1, max=150), validators.DataRequired(), validators.Email()])
     password = PasswordField('Password', [validators.DataRequired(), validators.EqualTo('confirm_password')])
     confirm_password = PasswordField('Confirm Password', [validators.DataRequired(), validators.EqualTo('password')])
-    recaptcha = RecaptchaField()
+    security_question = SelectField('Security question', [validators.DataRequired()], choices = [('1', 'option 1'), ('2', 'option 2'), ('3', 'option 3')]
+                                                                    )
+    security_answer = StringField('Security answers', [validators.DataRequired()])
     submit = SubmitField('Sign Up')
+
+    def validate_password(form, password):
+        password_value = password.data
+        special_characters = False
+        upper_case = False
+        lower_case = False
+        numeric_number = False
+        if len((str(password_value ))) < 8:
+            raise ValidationError('Password should be at least 8 letters/digits long')
+        for i in str(password_value ):
+            if i.isupper():
+                upper_case = True
+            if i.islower():
+                lower_case = True
+            if i.isdigit():
+                numeric_number = True
+            if not i.isalnum():
+                special_characters = True
+        if not upper_case:
+            raise ValidationError('Password must contain at least 1 upper case letter')
+        if not lower_case:
+            raise ValidationError('Password must contain at least 1 lower case letter')
+        if not numeric_number:
+            raise ValidationError('Password must contain at least 1 digit')
+        if not special_characters:
+            raise ValidationError('Password must contain at least 1 special character')
+
+
+class optional_signup(Form):
+    Phone_number = IntegerField('Phone number', validators=(validators.Optional(),))
+    card_number = IntegerField('Card number', validators=(validators.Optional(),))
+    exp_date = DateField('Expiry date(mm/yyyy)',format='%m/%Y',validators=(validators.Optional(),))
+    CVV = IntegerField('CVV', validators=(validators.Optional(),))
 
 
 class Login(Form):
