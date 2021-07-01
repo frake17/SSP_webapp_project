@@ -7,6 +7,8 @@ import User
 from Forms import SignUp, Login, CreateLocation, UpdateProfile, UpdatePassword
 from Forms import SignUp, Login, CreateLocation, UpdateProfile, UpdatePassword, optional_signup, recaptcha_form
 # SSP CODES
+from flask_mysqldb import MySQL
+import MySQLdb.cursors
 from flask_recaptcha import ReCaptcha
 import requests
 import json
