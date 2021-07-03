@@ -4,7 +4,6 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 
 import Location
 import User
-from Forms import SignUp, Login, CreateLocation, UpdateProfile, UpdatePassword
 from Forms import SignUp, Login, CreateLocation, UpdateProfile, UpdatePassword, optional_signup, recaptcha_form
 # SSP CODES
 from flask_mysqldb import MySQL
@@ -13,8 +12,10 @@ from flask_recaptcha import ReCaptcha
 import requests
 import json
 from flask_mail import Mail, Message
+import bcrypt
 from random import randint
 from datetime import datetime, timedelta
+from cryptography.fernet import Fernet
 
 elly = Flask(__name__)
 elly.secret_key = 'any_random_string'
@@ -126,9 +127,25 @@ def signup():
                 password = signup_form.password.data
                 security_qn = signup_form.security_question.data
                 security_ans = signup_form.security_answer.data
+                # Password Hashing
+                # Create a random number (Salt)
+                salt = bcrypt.gensalt(rounds=16)
+                # A hashed value is created with hashpw() function, which takes the cleartext value and a salt as
+                # parameters.
+                hash_password = bcrypt.hashpw(password.encode(), salt)
+                hash_security_ans = bcrypt.hashpw(security_ans(), salt)
+
+                # Symmetric Key Encryption
+                # Generate a random Symmetric key. Keep this key in your database
+                key = Fernet.generate_key()
+                # Load the key into the Crypto API
+                f = Fernet(key)
+                # Encrypt the email and convert to bytes by calling f.encrypt()
+                encryptedEmail = f.encrypt(email.encode())
+
                 cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-                cursor.execute('INSERT INTO customers_temp VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                               (first_name, last_name, email, password, phone_num, card_num, exp_date, CVV, security_qn, security_ans))
+                cursor.execute('INSERT INTO customers_temp VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                               (first_name, last_name, encryptedEmail, hash_password, phone_num, card_num, exp_date, CVV, security_qn, hash_security_ans, key))
                 mysql.connection.commit()
                 session['fname'] = first_name
                 session['lname'] = last_name
