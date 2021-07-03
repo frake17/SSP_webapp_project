@@ -38,10 +38,6 @@ mysql = MySQL(elly)
 mail = Mail(elly)
 elly = Blueprint('elly', __name__, template_folder='templates', static_folder='static')
 
-@elly.route('/loginActivity(cust)')
-def loginActivity():
-    return render_template('loginActivity(cust).html')
-
 
 @elly.route('/loginActivity(cust)')
 def loginActivity():
@@ -185,9 +181,11 @@ def resend():
 
 @elly.route('/Account_created', methods=['GET', 'POST'])
 def account_created():
+    first_name = session.get('fname')
+    last_name = session.get('lname')
     if request.method == 'POST':
         return redirect(url_for('home'))
-    return render_template('Account_created.html')
+    return render_template('Account_created.html', fname = first_name, lname=last_name)
 
 
 @elly.route('/retrieveUsers')

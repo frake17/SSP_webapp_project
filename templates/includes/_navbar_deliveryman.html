@@ -12,7 +12,7 @@
         </li>
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="navbardrop2">
-                Deliveryman
+                {{session.get('fname', None)}} {{session.get('lname', None)}}
             </a>
             <div class="dropdown-menu">
                 {% if 'current' in session %}
