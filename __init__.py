@@ -55,19 +55,6 @@ def login():
 def authenticate():
     return render_template('authenticate.html')
 
-@app.route("/login", methods=['GET', 'POST'])
-def login():
-    if request.method == "POST":
-        if request.form['btn'] == "login_btn":
-            return redirect(url_for("authenticate"))
-
-    return render_template('login.html')
-
-
-@app.route("/authenticate", methods=['GET', 'POST'])
-def authenticate():
-    return render_template('authenticate.html')
-
 
 @app.errorhandler(404)
 def page_not_found(e):

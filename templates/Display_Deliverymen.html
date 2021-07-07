@@ -1,25 +1,9 @@
 {% extends "base.html" %}
-{% block title %} Display Deliverymen{% endblock %}
+{% block title %} Display Staff{% endblock %}
 
 {% block content %}
 <!-- Nav tabs -->
-<h1 class="display-4">Deliverymen details</h1>
-<ul class="nav nav-tabs">
-    <li class="nav-item">
-        <a class="nav-link " href="/All_Deliveries">Delivery</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="/All_Self_collection">Self-collection</a>
-    </li>
-    <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle active" data-toggle="dropdown" href="#" id="navbardrop">
-            Deliverymen
-        </a>
-        <div class="dropdown-menu">
-            <a class="dropdown-item" href="/Create_Deliverymen">Create Deliverymen</a>
-            <a class="dropdown-item" href="/Display_Deliverymen">Display Deliverymen</a>
-        </div>
-</ul>
+<h1 class="display-4">Staff details</h1>
 <br>
 <ul class="navbar-nav">
     <li class="nav-item dropdown">
@@ -27,10 +11,20 @@
             Deliverymen Regions
         </a>
         <div class="dropdown-menu">
-            <a class="dropdown-item" href="/Deliveryman_North">North</a>
-            <a class="dropdown-item" href="/Deliveryman_South">South</a>
-            <a class="dropdown-item" href="/Deliveryman_East">East</a>
-            <a class="dropdown-item" href="/Deliveryman_West">West</a>
+            <a class="dropdown-item" href="/Display_Deliverymen/North">North</a>
+            <a class="dropdown-item" href="/Display_Deliverymen/South">South</a>
+            <a class="dropdown-item" href="/Display_Deliverymen/East">East</a>
+            <a class="dropdown-item" href="/Display_Deliverymen/West">West</a>
+        </div>
+    </li>
+     <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="navbardrop2">
+            Staff Role
+        </a>
+        <div class="dropdown-menu">
+            <a class="dropdown-item" href="/Display_Deliverymen/Staff">Staff</a>
+            <a class="dropdown-item" href="/Display_Deliverymen/Manager">Manger</a>
+            <a class="dropdown-item" href="/Display_Deliverymen/Deliverymen">Deliverymen</a>
         </div>
     </li>
 </ul>
@@ -64,12 +58,14 @@
     <table class="table table-striped">
         <thead>
         <tr>
-            <th>User ID</th>
+            <th>Staff ID</th>
             <th>First Name</th>
             <th>Last Name</th>
             <th>Gender</th>
             <th>Email</th>
             <th>Contact Number</th>
+            <th>Role</th>
+            <th>Outlet</th>
             <th>Regions in charged</th>
             <th>Remarks</th>
             <th>Orders</th>
@@ -78,66 +74,66 @@
         </tr>
         </thead>
         <tbody>
-        {% for user in users_list %}
+        {% for email in users_list %}
         <tr>
-            <td>{{ user.get_Deliverymen_id() }}</td>
-            <td>{{ user.get_first_name() }}</td>
-            <td>{{ user.get_last_name() }}</td>
-            <td>{{ user.get_email() }}</td>
-            <td>{{ user.get_gender() }}</td>
-            <td>{{ user.get_contact_no() }}</td>
-            {% if user.get_regions() == "N" %}
+            <td>{{ users_list.get(email)['StaffID'] }}</td>
+            <td>{{ users_list.get(email)['fname'] }}</td>
+            <td>{{ users_list.get(email)['lname'] }}</td>
+            <td>{{ users_list.get(email)['gender'] }}</td>
+            <td>{{ email }}</td>
+            <td>{{ users_list.get(email)['phone_num'] }}</td>
+            <td>{{ users_list.get(email)['role'] }}</td>
+            <td>{{ users_list.get(email)['outlet'] }}</td>
+            {% if users_list.get(email)['region'] == "N" %}
             <td>North</td>
-            {% elif user.get_regions() == "S" %}
+            {% elif users_list.get(email)['region'] == "S" %}
             <td>South</td>
-            {% elif user.get_regions() == "E" %}
+            {% elif users_list.get(email)['region'] == "E" %}
             <td>East</td>
-            {% elif user.get_regions() == "W" %}
+            {% elif users_list.get(email)['region'] == "W" %}
             <td>West</td>
+            {%elif users_list.get(email)['region'] == 'NULL' %}
+            <td>N.A</td>
             {% endif %}
-            <td>{{ user.get_remarks() }}</td>
+            <td>{{ users_list.get(email)['remarks'] }}</td>
             <td>
-                <a href="/ordersAssigned/{{user.get_Deliverymen_id()}}">
-                    <form action="{{url_for('qing.Display_Deliverymen', id=user.get_Deliverymen_id())}}" method="POST">
-                        <!--        <input type="submit" value="Delete" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete {#user.get_first_name()#} {#user.get_last_name()#}?');">-->
-                        <!-- Button to Open the Modal -->
-                        <button class="btn btn-danger" data-target="#myModal_orders_{{user.get_Deliverymen_id()}}" data-toggle="modal"
+                {% if users_list.get(email)['role'] == 'Deliverymen' %}
+                <a href="/ordersAssigned/{{users_list.get(email)['StaffID']}}">
+                    <form action="{{url_for('qing.Display_Staff', id=users_list.get(email)['StaffID'], sort='None')}}" method="POST">
+                        <button class="btn btn-danger" data-target="#myModal_orders_{{users_list['StaffID']}}" data-toggle="modal"
                                 type="button">
                             Orders
                         </button>
 
                     </form>
                 </a>
+                {% else %}
+                N.A
+                {% endif %}
             </td>
             <td>
-                <a class="btn btn-warning" href="/updateDeliverymen/{{user.get_Deliverymen_id()}}">Update</a>
+                <a class="btn btn-warning" href="/updateDeliverymen/{{users_list.get(email)['StaffID']}}">Update</a>
             </td>
             <td>
-                <form action="{{url_for('qing.delete_Deliverymen', id=user.get_Deliverymen_id())}}" method="POST">
-                    <!--        <input type="submit" value="Delete" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete {#user.get_first_name()#} {#user.get_last_name()#}?');">-->
-                    <!-- Button to Open the Modal -->
-                    <button class="btn btn-danger" data-target="#myModal_{{user.get_Deliverymen_id()}}" data-toggle="modal"
+                <form action="{{url_for('qing.delete_Deliverymen', id=users_list.get(email)['StaffID'])}}" method="POST">
+                    <button class="btn btn-danger" data-target="#myModal_{{users_list.get(email)['StaffID']}}" data-toggle="modal"
                             type="button">
                         Delete
                     </button>
 
-                    <!-- The Modal -->
-                    <div class="modal" id="myModal_{{user.get_Deliverymen_id()}}">
+                    <div class="modal" id="myModal_{{users_list.get(email)['StaffID']}}">
                         <div class="modal-dialog">
                             <div class="modal-content">
 
-                                <!-- Modal Header -->
                                 <div class="modal-header">
                                     <h4 class="modal-title">Delete Confirmation</h4>
                                     <button class="close" data-dismiss="modal" type="button">&times;</button>
                                 </div>
 
-                                <!-- Modal body -->
                                 <div class="modal-body">
-                                    Are you sure you want to delete {{user.get_first_name()}} {{user.get_last_name()}}?
+                                    Are you sure you want to delete {{users_list.get(email)['fname']}} {{users_list.get(email)['lname']}}?
                                 </div>
 
-                                <!-- Modal footer -->
                                 <div class="modal-footer">
                                     <input class="btn btn-danger" type="submit" value="Delete">
                                     <button class="btn btn-secondary" data-dismiss="modal" type="button">Cancel</button>

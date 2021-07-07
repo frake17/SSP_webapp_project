@@ -235,16 +235,21 @@ class CreateLocation(Form):
     availability = RadioField('Availability', choices=[('Full', 'Full'), ('Available', 'Available')], default='Full')
 
 
-class CreateDeliverymen(Form):
+class CreateStaff(Form):
+    staff_id = StringField('Staff ID: ', [validators.DataRequired()])
+    outlet = StringField('Outlet :', [validators.DataRequired()])
     first_name = StringField('First Name :', [validators.Length(min=1, max=150), validators.DataRequired()])
     last_name = StringField('Last Name :', [validators.Length(min=1, max=150), validators.DataRequired()])
+    password = PasswordField('Password', [validators.DataRequired()])
     gender = SelectField('Gender :', [validators.DataRequired()],
                          choices=[('', 'Select'), ('F', 'Female'), ('M', 'Male')], default='')
     email = StringField('Email :', [validators.Length(min=1, max=150), validators.DataRequired()])
     contact_no = IntegerField('Contact number :', [validators.DataRequired()])
-    regions = RadioField('Regions in charge :', choices=[('N', 'North'), ('S', 'South'), ('E', 'East'), ('W', 'West')],
-                         default='F')
+    regions = RadioField('Regions in charge(For deliverymen) :', choices=[('N', 'North'), ('S', 'South'), ('E', 'East'), ('W', 'West'),('NULL',
+                                                                                                                       'NULL')],
+                         default='NULL')
     remarks = TextAreaField('Remarks :', [validators.Optional()])
+    role = SelectField('Staff Role', [validators.DataRequired()], choices=[('Staff', 'Staff'), ('Manager', 'Manager'), ('Deliveryman', 'Deliveryman')])
 
     def validate_contact_no(form, contact_no):
         length = str(contact_no.data)
@@ -257,12 +262,11 @@ class CreateDeliverymen(Form):
 class deliverymen_profile_update(Form):
     first_name = StringField('First Name :', [validators.Length(min=1, max=150), validators.DataRequired()])
     last_name = StringField('Last Name :', [validators.Length(min=1, max=150), validators.DataRequired()])
-    gender = SelectField('Gender :', [validators.DataRequired()],
-                         choices=[('', 'Select'), ('F', 'Female'), ('M', 'Male')], default='')
+    gender = StringField('Gender: ', [validators.DataRequired()])
     email = StringField('Email :', [validators.Length(min=1, max=150), validators.DataRequired()])
     contact_no = IntegerField('Contact number :', [validators.DataRequired()])
-    regions = RadioField('Regions in charge :', choices=[('N', 'North'), ('S', 'South'), ('E', 'East'), ('W', 'West')],
-                         default='F')
+    regions = RadioField('Regions in charge :', choices=[('N', 'North'), ('S', 'South'), ('E', 'East'), ('W', 'West'), ('NULL', 'NULL')],
+                         default='NULL')
     remarks = TextAreaField('Remarks :', [validators.Optional()])
 
     def validate_contact_no(form, contact_no):

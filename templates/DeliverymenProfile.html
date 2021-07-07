@@ -26,15 +26,15 @@
             <th></th>
         </tr>
         </thead>
-        {% for user in users_list %}
+        {% for account in users_list %}
         <tr>
-            <td>{{ user.get_Deliverymen_id() }}</td>
-            <td>{{ user.get_first_name() }}</td>
-            <td>{{ user.get_last_name() }}</td>
-            <td>{{ user.get_gender() }}</td>
-            <td>{{ user.get_email() }}</td>
-            <td>{{ user.get_contact_no() }}</td>
-            <td>{{user.get_regions()}}</td>
+            <td>{{ account['StaffID'] }}</td>
+            <td>{{ account['fname'] }}</td>
+            <td>{{ account['lname'] }}</td>
+            <td>{{ account['gender'] }}</td>
+            <td>{{ email }}</td>
+            <td>{{ account['phone_num'] }}</td>
+            <td>{{ account['region']}}</td>
             <td><a class="btn btn-warning" href="/deliverymen_update_profile/{{user.get_Deliverymen_id()}}">Update</a></td>
         </tr>
         {% endfor %}
