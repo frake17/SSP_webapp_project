@@ -40,6 +40,25 @@ mail = Mail(elly)
 elly = Blueprint('elly', __name__, template_folder='templates', static_folder='static')
 
 
+def polynomialRollingHash(str): # To hash string
+    # P and M
+    p = 31
+    m = 1e9 + 9
+    power_of_p = 1
+    hash_val = 0
+
+    # Loop to calculate the hash value
+    # by iterating over the elements of string
+    for i in range(len(str)):
+        hash_val = ((hash_val + (ord(str[i]) -
+                                 ord('a') + 1) *
+                     power_of_p) % m)
+
+        power_of_p = (power_of_p * p) % m
+
+    return int(hash_val)
+
+
 @elly.route('/loginActivity(cust)')
 def loginActivity():
     return render_template('loginActivity(cust).html')
@@ -48,11 +67,9 @@ def loginActivity():
 @elly.route('/signup', methods=['GET', 'POST'])
 def signup():
     signup_form = SignUp(request.form)
+    optional_form = optional_signup(request.form)
+    recaptcha_forms = recaptcha_form(request.form)
     if request.method == 'POST' and signup_form.validate():
-        optional_form = optional_signup(request.form)
-        recaptcha_forms = recaptcha_form(request.form)
-        msg = ''
-        print(signup_form.validate())
         if request.method == 'POST' and signup_form.validate() and optional_form.validate():
 
             users_dict = {}
@@ -120,6 +137,7 @@ def signup():
                     CVV = 'NULL'
 
                 current_time = datetime.now()
+                session['date'] = current_time
                 conformation_code = randint(000000, 999999)
                 first_name = signup_form.first_name.data
                 last_name = signup_form.last_name.data
@@ -133,7 +151,7 @@ def signup():
                 # A hashed value is created with hashpw() function, which takes the cleartext value and a salt as
                 # parameters.
                 hash_password = bcrypt.hashpw(password.encode(), salt)
-                hash_security_ans = bcrypt.hashpw(security_ans(), salt)
+                hash_security_ans = polynomialRollingHash(security_ans)
 
                 # Symmetric Key Encryption
                 # Generate a random Symmetric key. Keep this key in your database
@@ -154,14 +172,15 @@ def signup():
                 msg.body = "Conformation code is: %d" % conformation_code
                 mail.send(msg)
 
-                return redirect(url_for('elly.signup_confirmation', conformation_code=conformation_code, date = current_time))
+                return redirect(url_for('elly.signup_confirmation', conformation_code=conformation_code))
 
-        return render_template('signup(customer).html', form=signup_form, optional_form=optional_form, recap = recaptcha_forms)
+    return render_template('signup(customer).html', form=signup_form, optional_form=optional_form, recap = recaptcha_forms)
 
 
 @elly.route('/signup_confirmation/<conformation_code>', methods=['GET', 'POST'])  # SSP CODE
-def signup_confirmation(conformation_code, date):
+def signup_confirmation(conformation_code):
     time_change = timedelta(minutes=15)
+    date = session.get('date')
     Changed_time = date + time_change
     first_name = session['fname']
     last_name = session['lname']
@@ -173,6 +192,9 @@ def signup_confirmation(conformation_code, date):
                            , (first_name, last_name))
             cursor.execute('DELETE FROM customers_temp WHERE fname = %s and lname = %s', (first_name, last_name))
             mysql.connection.commit()
+            session['customer'] = True
+            session['admin'] = False
+            session['deliveryman'] = False
             return redirect(url_for('elly.account_created'))
         elif datetime.now() < Changed_time:
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
