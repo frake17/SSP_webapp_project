@@ -1,0 +1,67 @@
+
+DROP TABLE IF EXISTS Customers;
+CREATE TABLE IF NOT EXISTS Customers (
+id int NOT NULL AUTO_INCREMENT,
+ fname varchar(50) NOT NULL,
+ lname varchar(50) NOT NULL,
+ encrypted_email varchar(255) NOT NULL,
+ hashed_password varchar(255) NOT NULL,
+ Phone_num int(8),
+ card_num int(16),
+ card_exp_date date,
+ card_cvv int(3),
+ security_qn varchar(100),
+ hashed_security_ans varchar(100),
+ symmetrickey varchar(255) NULL,
+ PRIMARY KEY (id)
+)ENGINE=InnoDB AUTO_INCREMENT=2;
+
+DROP TABLE IF EXISTS Customers_temp;
+CREATE TABLE IF NOT EXISTS Customers_temp (
+id int NOT NULL AUTO_INCREMENT,
+ fname varchar(50) NOT NULL,
+ lname varchar(50) NOT NULL,
+ encrypted_email varchar(255) NOT NULL,
+ hashed_password varchar(255) NOT NULL,
+ Phone_num int(8),
+ card_num int(16),
+ card_exp_date date,
+ card_cvv int(3),
+ security_qn varchar(100),
+ hashed_security_ans varchar(100),
+ symmetrickey varchar(255) NULL,
+ PRIMARY KEY (id)
+)ENGINE=InnoDB AUTO_INCREMENT=2;
+
+DROP TABLE IF EXISTS Temperature;
+CREATE TABLE IF NOT EXISTS Temperature (
+id int NOT NULL AUTO_INCREMENT,
+ Temperature float(2,2) NOT NULL,
+ NRIC varchar(9) NOT NULL,
+ phone_num int(8) NOT NULL,
+ Date date NOT NULL,
+ time_enter varchar(4) NOT NULL,
+ time_left varchar(4) NOT NULL,
+ outlet varchar(255) NOT NULL,
+ PRIMARY KEY (id)
+)ENGINE=InnoDB AUTO_INCREMENT=2;
+
+DROP TABLE IF EXISTS Staff;
+CREATE TABLE IF NOT EXISTS Staff (
+ StaffID varchar(50) NOT NULL,
+ fname varchar(50) NULL,
+ lname varchar(50) NULL,
+ gender varchar(50) NULL,
+ encrypted_email varchar(255) NULL,
+ role varchar(15) NULL,
+ outlet varchar(255) NULL,
+ order_number varchar(255) NULL,
+ region varchar(255) NULL,
+ hashed_password varchar (255) NULL,
+ phone_num int(8) NULL,
+ remarks varchar(255) NULL,
+ symmetrickey varchar(255) NULL,
+ PRIMARY KEY (StaffID)
+)ENGINE=InnoDB AUTO_INCREMENT=2;
+INSERT INTO Staff(StaffID, encrypted_email,symmetrickey, hashed_password)
+values ("000","gAAAAABg6pq-yhvczlrQ8Gz3lN-UwpCmluAaAAHFpFeZsf9WZiXfSvnY__6QFK2N27FlRxHg3H7xUAY1wm0w0aSz7ZSh_ZP_jA==","pvZV-9MxXPwF8CRLEonHZAcGPzKdBZQlR9SyEQbjoEk=", "$2b$16$eEP24wgsMD1DjL22qP/kW.SbA85r59mccmTNCKYpvTGXNC77DNAXW");
