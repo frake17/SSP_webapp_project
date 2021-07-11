@@ -63,5 +63,5 @@ CREATE TABLE IF NOT EXISTS Staff (
  symmetrickey varchar(255) NULL,
  PRIMARY KEY (StaffID)
 )ENGINE=InnoDB AUTO_INCREMENT=2;
-INSERT INTO Staff(StaffID, encrypted_email,symmetrickey, hashed_password)
-values ("000","gAAAAABg6pq-yhvczlrQ8Gz3lN-UwpCmluAaAAHFpFeZsf9WZiXfSvnY__6QFK2N27FlRxHg3H7xUAY1wm0w0aSz7ZSh_ZP_jA==","pvZV-9MxXPwF8CRLEonHZAcGPzKdBZQlR9SyEQbjoEk=", "$2b$16$eEP24wgsMD1DjL22qP/kW.SbA85r59mccmTNCKYpvTGXNC77DNAXW");
+INSERT INTO Staff(StaffID, encrypted_email,symmetrickey, hashed_password, role)
+values ("000","gAAAAABg6pq-yhvczlrQ8Gz3lN-UwpCmluAaAAHFpFeZsf9WZiXfSvnY__6QFK2N27FlRxHg3H7xUAY1wm0w0aSz7ZSh_ZP_jA==","pvZV-9MxXPwF8CRLEonHZAcGPzKdBZQlR9SyEQbjoEk=", "$2b$16$eEP24wgsMD1DjL22qP/kW.SbA85r59mccmTNCKYpvTGXNC77DNAXW", "HR");
