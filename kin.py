@@ -1000,12 +1000,3 @@ def mananage_account():
     user_list = [1]
     return render_template('Manage_staff_accounts.html', users_list = user_list)
 
-
-@kin.route('/test1')
-def test1():
-    return url_for('mananage_account')
-
-
-@kin.route('/test2')
-def test2():
-    return url_for('mananage_account')
