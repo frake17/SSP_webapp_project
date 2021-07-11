@@ -92,7 +92,7 @@
             <td>East</td>
             {% elif users_list.get(email)['region'] == "W" %}
             <td>West</td>
-            {%elif users_list.get(email)['region'] == 'NULL' %}
+            {%elif users_list.get(email)['region'] == 'NULL' or users_list.get(email)['region'] == None %}
             <td>N.A</td>
             {% endif %}
             <td>{{ users_list.get(email)['remarks'] }}</td>
@@ -104,7 +104,6 @@
                                 type="button">
                             Orders
                         </button>
-
                     </form>
                 </a>
                 {% else %}
@@ -112,7 +111,11 @@
                 {% endif %}
             </td>
             <td>
+                {% if users_list.get(email)['role'] == 'HR' %}
+                N.A
+                {% else %}
                 <a class="btn btn-warning" href="/updateDeliverymen/{{users_list.get(email)['StaffID']}}">Update</a>
+                {% endif %}
             </td>
             <td>
                 <form action="{{url_for('qing.delete_Deliverymen', id=users_list.get(email)['StaffID'])}}" method="POST">
