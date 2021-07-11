@@ -323,7 +323,7 @@ def collect_date_location():
             session['invalid_date'] = date + ' is invalid. Please choose another date'
             redirect(url_for('kin.collect_date_location'))
         elif input_date == date_now:
-            if input_hour <= date_now.hour:
+            if input_hour <= str(date_now.hour):
                 session['invalid_time'] = input_hour + ' is invalid. Please choose another timing'
                 redirect(url_for('kin.collect_date_location'))
         elif input_date < date_now:
@@ -999,3 +999,8 @@ def set_default(supplier_id):
 def mananage_account():
     user_list = [1]
     return render_template('Manage_staff_accounts.html', users_list = user_list)
+
+
+@kin.route('/test1')
+def test1():
+    return url_for('mananage_account')
