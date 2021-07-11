@@ -253,7 +253,8 @@ def Create_Deliverymen():
 
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('INSERT INTO staff VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                       (staffid, first_name, last_name, gender, encryptedEmail, role, outlet, 'NULL', region, hash_password, phone_num, remarks, key))
+                       (staffid, first_name, last_name, gender, encryptedEmail, role, outlet, 'NULL', region,
+                        hash_password, phone_num, remarks, key))
         mysql.connection.commit()
         session['fname'] = first_name
         session['lname'] = last_name
@@ -265,7 +266,8 @@ def Create_Deliverymen():
     return render_template('Create_Staff.html', form=create_Staff_form)
 
 
-@qing.route('/Display_Deliverymen', defaults={'sort': None, 'id': None}) # ?? test with have id and not sort, see what id does
+@qing.route('/Display_Deliverymen',
+            defaults={'sort': None, 'id': None})  # ?? test with have id and not sort, see what id does
 @qing.route('/Display_Deliverymen/<sort>', defaults={'id': None})
 @qing.route('/Display_Deliverymen/<sort>/<id>')
 def Display_Staff(sort, id):
@@ -274,20 +276,20 @@ def Display_Staff(sort, id):
     decryptedEmail = 'NULL'
     db = shelve.open('storage.db', 'r')
     try:
-       users_dict = db['Deliverymen']
-       assign_dict = db['assignDeliverymen']
-       if id is not None:
-        order_list = assign_dict.get(id)
+        users_dict = db['Deliverymen']
+        assign_dict = db['assignDeliverymen']
+        if id is not None:
+            order_list = assign_dict.get(id)
 
     except:
-       print("Error in displaying Users from storage.db.")
-       users_dict = {}
+        print("Error in displaying Users from storage.db.")
+        users_dict = {}
     db.close()
 
-    #users_list = []
-    #for key in users_dict:
+    # users_list = []
+    # for key in users_dict:
     #    user = users_dict.get(key)
-   #     users_list.append(user)
+    #     users_list.append(user)
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute("SELECT * FROM Staff")
     account = cursor.fetchone()
@@ -394,6 +396,7 @@ def Display_Staff(sort, id):
             # Decrypt Email
             # Extract the Symmetric-key from Accounts DB
             key = account['symmetrickey']
+            print(key)
             # Load the key
             f = Fernet(key)
             # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
@@ -415,23 +418,23 @@ def update_Deliverymen(id):
     cursor.execute("SELECT * FROM Staff")
     account = cursor.fetchone()
     if request.method == 'POST' and update_Deliverymen_form.validate():
-        #users_dict = {}
-        #db = shelve.open('storage.db', 'w')
-        #users_dict = db['Deliverymen']
+        # users_dict = {}
+        # db = shelve.open('storage.db', 'w')
+        # users_dict = db['Deliverymen']
 
-        #user = users_dict.get(id)
-        #user.set_first_name(update_Deliverymen_form.first_name.data)
-        #user.set_last_name(update_Deliverymen_form.last_name.data)
-        #user.set_gender(update_Deliverymen_form.gender.data)
-        #user.set_email(update_Deliverymen_form.email.data)
-        #user.set_contact_no(update_Deliverymen_form.contact_no.data)
-        #user.set_regions(update_Deliverymen_form.regions.data)
-        #user.set_remarks(update_Deliverymen_form.remarks.data)
+        # user = users_dict.get(id)
+        # user.set_first_name(update_Deliverymen_form.first_name.data)
+        # user.set_last_name(update_Deliverymen_form.last_name.data)
+        # user.set_gender(update_Deliverymen_form.gender.data)
+        # user.set_email(update_Deliverymen_form.email.data)
+        # user.set_contact_no(update_Deliverymen_form.contact_no.data)
+        # user.set_regions(update_Deliverymen_form.regions.data)
+        # user.set_remarks(update_Deliverymen_form.remarks.data)
 
-        #db['Deliverymen'] = users_dict
-        #db.close()
+        # db['Deliverymen'] = users_dict
+        # db.close()
 
-        #session['Deliverymen_updated'] = user.get_first_name() + ' ' + user.get_last_name()
+        # session['Deliverymen_updated'] = user.get_first_name() + ' ' + user.get_last_name()
         if account:
             if account['StaffID'] == id:
                 fname = update_Deliverymen_form.first_name.data
@@ -443,31 +446,32 @@ def update_Deliverymen(id):
                 remarks = update_Deliverymen_form.remarks.data
                 key = account['symmetrickey']
 
-
                 f = Fernet(key)
                 # Encrypt the email and convert to bytes by calling f.encrypt()
                 encryptedEmail = f.encrypt(email.encode())
 
-                cursor.execute('UPDATE Staff SET fname = %s, lname = %s, gender = %s, encrypted_email = %s, phone_num = %s, region = %s, remarks = %s WHERE StaffID = %s', (
-                    fname, lname, gender, encryptedEmail, phone_num, region, remarks, id
-                ))
+                cursor.execute(
+                    'UPDATE Staff SET fname = %s, lname = %s, gender = %s, encrypted_email = %s, phone_num = %s, region = %s, remarks = %s WHERE StaffID = %s',
+                    (
+                        fname, lname, gender, encryptedEmail, phone_num, region, remarks, id
+                    ))
                 mysql.connection.commit()
 
         return redirect(url_for('qing.Display_Staff'))
     else:
-        #users_dict = {}
-        #db = shelve.open('storage.db', 'r')
-        #users_dict = db['Deliverymen']
-        #db.close()
+        # users_dict = {}
+        # db = shelve.open('storage.db', 'r')
+        # users_dict = db['Deliverymen']
+        # db.close()
 
-        #user = users_dict.get(id)
-        #update_Deliverymen_form.first_name.data = user.get_first_name()
-        #update_Deliverymen_form.last_name.data = user.get_last_name()
-        #update_Deliverymen_form.gender.data = user.get_gender()
-        #update_Deliverymen_form.email.data = user.get_email()
-        #update_Deliverymen_form.contact_no.data = user.get_contact_no()
-        #update_Deliverymen_form.regions.data = user.get_regions()
-        #update_Deliverymen_form.remarks.data = user.get_remarks()
+        # user = users_dict.get(id)
+        # update_Deliverymen_form.first_name.data = user.get_first_name()
+        # update_Deliverymen_form.last_name.data = user.get_last_name()
+        # update_Deliverymen_form.gender.data = user.get_gender()
+        # update_Deliverymen_form.email.data = user.get_email()
+        # update_Deliverymen_form.contact_no.data = user.get_contact_no()
+        # update_Deliverymen_form.regions.data = user.get_regions()
+        # update_Deliverymen_form.remarks.data = user.get_remarks()
 
         if account:
             if account['StaffID'] == id:
@@ -494,17 +498,17 @@ def update_Deliverymen(id):
 @qing.route('/deleteDeliverymen/<id>', methods=['POST'])
 def delete_Deliverymen(id):
     users_dict = {}
-    #db = shelve.open('storage.db', 'w')
-    #users_dict = db['Deliverymen']
-    #deliveryman_login = db['Deliverymen_login']
+    # db = shelve.open('storage.db', 'w')
+    # users_dict = db['Deliverymen']
+    # deliveryman_login = db['Deliverymen_login']
 
-    #user = users_dict.pop(id)
-    #deliveryman_login.pop(user.get_email())
+    # user = users_dict.pop(id)
+    # deliveryman_login.pop(user.get_email())
 
-    #db['Deliverymen'] = users_dict
-    #db.close()
+    # db['Deliverymen'] = users_dict
+    # db.close()
 
-    #session['Deliverymen_deleted'] = user.get_first_name() + ' ' + user.get_last_name()
+    # session['Deliverymen_deleted'] = user.get_first_name() + ' ' + user.get_last_name()
     # SSP CODE
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute("SELECT * FROM Staff")
@@ -816,7 +820,7 @@ def Outlet_West():
     return render_template('Outlet_West.html', order_list=order_list)
 
 
-@qing.route('/deliverymen_update_status/<int:id>/', methods=['GET', 'POST']) # Orders
+@qing.route('/deliverymen_update_status/<int:id>/', methods=['GET', 'POST'])  # Orders
 def deliverymen_update_status(id):
     deliverymen_update_status_form = deliverymen_status_update(request.form)
     if request.method == 'POST':
@@ -853,34 +857,34 @@ def deliverymen_update_status(id):
         return render_template('updateSelfCollection.html', form=deliverymen_update_status_form)
 
 
-@qing.route('/deliverymen_update_profile/<int:id>/', methods=['GET', 'POST']) # deliverymen Only update region remarks contact number
+@qing.route('/deliverymen_update_profile/<int:id>/',
+            methods=['GET', 'POST'])  # deliverymen Only update region remarks contact number
 def deliverymen_update_profile(id):
     deliverymen_update_profile_form = deliverymen_profile_update(request.form)
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute("SELECT * FROM Staff")
     account = cursor.fetchone()
     if request.method == 'POST' and deliverymen_update_profile_form.validate():
-        #users_dict = {}
-        #db = shelve.open('storage.db', 'w')
-        #users_dict = db['Deliverymen']
+        # users_dict = {}
+        # db = shelve.open('storage.db', 'w')
+        # users_dict = db['Deliverymen']
 
-        #user = users_dict.get(id)
-        #user.set_first_name(deliverymen_update_profile_form.first_name.data)
-        #user.set_last_name(deliverymen_update_profile_form.last_name.data)
-        #user.set_gender(deliverymen_update_profile_form.gender.data)
-        #user.set_email(deliverymen_update_profile_form.email.data)
-        #user.set_contact_no(deliverymen_update_profile_form.contact_no.data)
-        #user.set_regions(deliverymen_update_profile_form.regions.data)
-        #user.set_remarks(deliverymen_update_profile_form.remarks.data)
+        # user = users_dict.get(id)
+        # user.set_first_name(deliverymen_update_profile_form.first_name.data)
+        # user.set_last_name(deliverymen_update_profile_form.last_name.data)
+        # user.set_gender(deliverymen_update_profile_form.gender.data)
+        # user.set_email(deliverymen_update_profile_form.email.data)
+        # user.set_contact_no(deliverymen_update_profile_form.contact_no.data)
+        # user.set_regions(deliverymen_update_profile_form.regions.data)
+        # user.set_remarks(deliverymen_update_profile_form.remarks.data)
 
-        #db['Deliverymen'] = users_dict
-        #db.close()
+        # db['Deliverymen'] = users_dict
+        # db.close()
 
-        #session['Deliverymen_Profile_updated'] = user.get_first_name() + ' ' + user.get_last_name()
+        # session['Deliverymen_Profile_updated'] = user.get_first_name() + ' ' + user.get_last_name()
 
         if account:
             if account['StaffID'] == id:
-
                 fname = deliverymen_update_profile_form.first_name.data
                 lname = deliverymen_update_profile_form.last_name.data
                 gender = deliverymen_update_profile_form.gender.data
@@ -894,27 +898,28 @@ def deliverymen_update_profile(id):
                 # Encrypt the email and convert to bytes by calling f.encrypt()
                 encryptedEmail = f.encrypt(email.encode())
 
-                cursor.execute('UPDATE Staff SET fname = %s, lname = %s, gender = %s, email = %s, phone_num = %s, region = %s, remakrs = %s WHERE StaffID = %s', (
-                    fname, lname, gender, encryptedEmail, phone_num, region, remarks, id
-                ))
+                cursor.execute(
+                    'UPDATE Staff SET fname = %s, lname = %s, gender = %s, email = %s, phone_num = %s, region = %s, remakrs = %s WHERE StaffID = %s',
+                    (
+                        fname, lname, gender, encryptedEmail, phone_num, region, remarks, id
+                    ))
                 mysql.connection.commit()
-
 
         return redirect(url_for('qing.DeliverymenProfile'))
     else:
-        #users_dict = {}
-        #db = shelve.open('storage.db', 'r')
-        #users_dict = db['Deliverymen']
-        #db.close()
+        # users_dict = {}
+        # db = shelve.open('storage.db', 'r')
+        # users_dict = db['Deliverymen']
+        # db.close()
 
-        #user = users_dict.get(id)
-        #deliverymen_update_profile_form.first_name.data = user.get_first_name()
-        #deliverymen_update_profile_form.last_name.data = user.get_last_name()
-        #deliverymen_update_profile_form.gender.data = user.get_gender()
-        #deliverymen_update_profile_form.email.data = user.get_email()
-        #deliverymen_update_profile_form.contact_no.data = user.get_contact_no()
-        #deliverymen_update_profile_form.regions.data = user.get_regions()
-        #deliverymen_update_profile_form.remarks.data = user.get_remarks()
+        # user = users_dict.get(id)
+        # deliverymen_update_profile_form.first_name.data = user.get_first_name()
+        # deliverymen_update_profile_form.last_name.data = user.get_last_name()
+        # deliverymen_update_profile_form.gender.data = user.get_gender()
+        # deliverymen_update_profile_form.email.data = user.get_email()
+        # deliverymen_update_profile_form.contact_no.data = user.get_contact_no()
+        # deliverymen_update_profile_form.regions.data = user.get_regions()
+        # deliverymen_update_profile_form.remarks.data = user.get_remarks()
 
         if account:
             if account['StaffID'] == id:
@@ -933,7 +938,6 @@ def deliverymen_update_profile(id):
                 deliverymen_update_profile_form.contact_no.data = account['phone_num']
                 deliverymen_update_profile_form.regions.data = account['region']
                 deliverymen_update_profile_form.remarks.data = account['remarks']
-
 
         return render_template('deliverymen_update_profile.html', form=deliverymen_update_profile_form)
 
@@ -969,13 +973,13 @@ def deliverymen_orders():
 def DeliverymenProfile():
     email = session.get('current')
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    #db = shelve.open('storage.db', 'r')
-    #deliverymen_login = db["Deliverymen_login"]
-    #Deliverymen_dict = db['Deliverymen']
-    #current_id = deliverymen_login.get(email)
+    # db = shelve.open('storage.db', 'r')
+    # deliverymen_login = db["Deliverymen_login"]
+    # Deliverymen_dict = db['Deliverymen']
+    # current_id = deliverymen_login.get(email)
     Deliverymen_list = []
-    #Deliverymen = Deliverymen_dict.get(current_id)
-    #Deliverymen_list.append(Deliverymen)
+    # Deliverymen = Deliverymen_dict.get(current_id)
+    # Deliverymen_list.append(Deliverymen)
     account = cursor.fetchone()
     if account:
         key = account['symmetrickey']
@@ -988,4 +992,4 @@ def DeliverymenProfile():
         decryptedEmail = decryptedEmail_Binary.decode()
         if decryptedEmail == email:
             Deliverymen_list.append(account)
-    return render_template('DeliverymenProfile.html', users_list=Deliverymen_list, email = email)
+    return render_template('DeliverymenProfile.html', users_list=Deliverymen_list, email=email)
