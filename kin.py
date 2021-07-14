@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import item
 from Forms import Item, Order, self_collect, Supplier, self_collection_update
 
-UPLOAD_FOLDER = 'static/img/uploaded'
+UPLOAD_FOLDER = '/static/img/uploaded'
 ALLOWED_EXTENSIONS = {'png'}
 
 kin = Flask(__name__)
@@ -684,6 +684,7 @@ def create_item(shop_or_stock):
             if filename in current_app.config['UPLOAD_FOLDER']:
                 flash('similar stock is already created')
                 return redirect(url_for('create_stock'))
+            print(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
             file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
 
             stock_item.set_id(count)
