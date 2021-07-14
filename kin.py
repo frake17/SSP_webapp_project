@@ -658,6 +658,7 @@ def edit_collect_order(id):
 def create_item(shop_or_stock):
     count = 1
     create_item_form = Item(request.form)
+    print(create_item_form.errors)
     if request.method == 'POST' and create_item_form.validate():
         file = request.files['file']
         if file and allowed_file(file.filename):
@@ -669,6 +670,7 @@ def create_item(shop_or_stock):
                     count += 1
             except:
                 print('Error in retrieving users from db')
+            print('worked')
 
             stock_item = item.Stock_item(create_item_form.stock_name.data,
                                          create_item_form.price.data, create_item_form.origin.data,

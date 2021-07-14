@@ -95,7 +95,11 @@
             {%elif users_list.get(email)['region'] == 'NULL' or users_list.get(email)['region'] == None %}
             <td>N.A</td>
             {% endif %}
-            <td>{{ users_list.get(email)['remarks'] }}</td>
+            <td>{% if users_list.get(email)['remarks'] == '' or users_list.get(email)['remarks'] == 'NULL' or users_list.get(email)['remarks'] == None%}
+            N.A
+            {% else %}
+            {{ users_list.get(email)['remarks'] }}
+            {% endif %}</td>
             <td>
                 {% if users_list.get(email)['role'] == 'Deliverymen' %}
                 <a href="/ordersAssigned/{{users_list.get(email)['StaffID']}}">
@@ -118,6 +122,9 @@
                 {% endif %}
             </td>
             <td>
+                {% if users_list.get(email)['role'] == 'HR' %}
+                N.A
+                {% else %}
                 <form action="{{url_for('qing.delete_Deliverymen', id=users_list.get(email)['StaffID'])}}" method="POST">
                     <button class="btn btn-danger" data-target="#myModal_{{users_list.get(email)['StaffID']}}" data-toggle="modal"
                             type="button">
@@ -146,6 +153,7 @@
                         </div>
                     </div>
                 </form>
+                {% endif %}
             </td>
         </tr>
         {% endfor %}

@@ -21,6 +21,7 @@ function myFunction() {
 </div>
 {% endfor %}
 <form action="" enctype=multipart/form-data method="POST">
+        {{ form.hidden_tag() }}
     <h2>Image.png for item</h2>
     <input name=file required type=file>
     <div class="form-group">
