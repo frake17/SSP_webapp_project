@@ -662,11 +662,10 @@ def assign(NSEW, id, orderid):
     # users_dict = db['Deliverymen']
     order_dict = db['confirmed_delivery']
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute("SELECT * FROM Staff WHERE role = Deliverymen")
+    cursor.execute("SELECT * FROM Staff WHERE role = 'Deliveryman'")
     account = cursor.fetchone()
     if account:
-        if account['StaffID'] == id:
-
+        if int(account['StaffID']) == id:
             assign_dict = {}
             try:
                 assign_dict = db['assignDeliverymen']
@@ -691,6 +690,7 @@ def assign(NSEW, id, orderid):
                 return redirect(url_for('qing.Dest_East'))
             elif NSEW == 'West':
                 return redirect(url_for('qing.Dest_West'))
+    return redirect(url_for('qing.All_Deliveries'))
 
 
 @qing.route('/updateSelfCollection/<int:id>/', methods=['GET', 'POST'])
@@ -732,6 +732,7 @@ def ordersAssigned(id):
     db = shelve.open('storage.db', 'r')
     assign_deliverymen = {}
     ordersAssigned_list = []
+    id = str(id)
     try:
         assign_deliverymen = db['assignDeliverymen']
         if id in assign_deliverymen:
@@ -740,8 +741,9 @@ def ordersAssigned(id):
             ordersAssigned_list = []
     except:
         print('anything')
-        return render_template(url_for('qing.Display_Deliverymen'))
+        return redirect(url_for('qing.Display_Staff'))
     deliverymen_id = id
+    print(assign_deliverymen, ordersAssigned_list)
     return render_template('ordersAssigned.html', order_list=ordersAssigned_list, count=len(ordersAssigned_list),
                            deliverymen_id=deliverymen_id, index=index)
 
@@ -949,25 +951,30 @@ def deliverymen_orders():
     email = session.get('current')
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     orders_list = []
-    # db = shelve.open('storage.db', 'r')
+    db = shelve.open('storage.db', 'r')
     # deliverymen_login = db["Deliverymen_login"]
-    # assign_orders = db['assignDeliverymen']
+    assign_orders = db['assignDeliverymen']
     # current_id = deliverymen_login.get(email)
     # print(current_id)
     # orders_list = assign_orders.get(current_id)
     # print(orders_list)
+    cursor.execute('Select * From Staff')
     account = cursor.fetchone()
-    if account:
-        key = account['symmetrickey']
-        # Load the key
-        f = Fernet(key)
-        # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
-        # using.encode()
-        decryptedEmail_Binary = f.decrypt(account['email'].encode())
-        # call .decode () to convert from Binary to String – to be displayed in Home.html.
-        decryptedEmail = decryptedEmail_Binary.decode()
-        if decryptedEmail == email:
-            orders_list.append(account['order_number'])
+    while account is not None:
+        if account:
+            key = account['symmetrickey']
+            # Load the key
+            f = Fernet(key)
+            # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
+            # using.encode()
+            decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+            # call .decode () to convert from Binary to String – to be displayed in Home.html.
+            decryptedEmail = decryptedEmail_Binary.decode()
+            if decryptedEmail == email:
+                # orders_list.append(account['order_number'])
+                orders_list = assign_orders.get(account['StaffID'])
+                print(assign_orders)
+        account = cursor.fetchone()
     return render_template('ordersAssigned(deliveryman).html', orders_list=orders_list)
 
 

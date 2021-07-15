@@ -101,7 +101,7 @@
             {{ users_list.get(email)['remarks'] }}
             {% endif %}</td>
             <td>
-                {% if users_list.get(email)['role'] == 'Deliverymen' %}
+                {% if users_list.get(email)['role'] == 'Deliveryman' %}
                 <a href="/ordersAssigned/{{users_list.get(email)['StaffID']}}">
                     <form action="{{url_for('qing.Display_Staff', id=users_list.get(email)['StaffID'], sort='None')}}" method="POST">
                         <button class="btn btn-danger" data-target="#myModal_orders_{{users_list['StaffID']}}" data-toggle="modal"

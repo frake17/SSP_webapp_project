@@ -152,7 +152,7 @@ def add_to_cart(product_id):
 
     for item in item_list:  # adding to cart
         id = item.get_id()
-        if id in cart_dict:
+        if product_id in cart_dict:
             item_cart = cart_dict.get(product_id)
             if item.get_stock_left() >= (item_cart.get_amount() + 1):
                 print('***', item.get_stock_left(), item.get_stock_name())

@@ -289,7 +289,6 @@ def login():
             db.close()
 
             users_list = []
-            print(deliveryman_login)
             for key in deliveryman_login:
                 if login_form.email.data == key:
                     print('dsa')
@@ -310,7 +309,7 @@ def login():
             if login_form.email.data not in users_dict:
                 return redirect(url_for('elly.signup'))
 
-    return render_template('login.html', form=login_form)
+    return render_template('login.html', form=login_form) # change to login.html
 
 
 @elly.route('/logout')

@@ -7,6 +7,7 @@
 <h1 class="display-4">Order information</h1>
 
 <form action="" enctype=multipart/form-data method="POST">
+        {{ form.hidden_tag() }}
     <div class="form-group">
         {{ render_field(form.name, class="form-control") }}
     </div>

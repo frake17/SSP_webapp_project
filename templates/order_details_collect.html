@@ -4,6 +4,7 @@
 {% block content %}
 {% from "includes/_formHelper.html" import render_field %}
 <form action="" enctype=multipart/form-data method="POST">
+        {{ form.hidden_tag() }}
     <div class="form-group">
         {{ render_field(form.name, class="form-control") }}
     </div>
