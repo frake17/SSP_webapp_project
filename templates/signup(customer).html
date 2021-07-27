@@ -4,7 +4,6 @@
 {% block content %}
 {% from "includes/_formHelper.html" import render_field %}
 <script src='https://www.google.com/recaptcha/api.js'></script>
-<script src="/static/js/optional_question.js"></script>
 <h1 class="display-4 text-center">Sign Up</h1>
 <link rel="stylesheet" href="/static/css/login.css">
 <form action="" method="POST" class="form-container">
@@ -35,7 +34,7 @@
        <div class="form-group">
            {{ render_field(form.security_answer, class='form-control') }}
         </div>
-        <button onclick="myFunction()">Optional information to set</button>
+        <h4 class="text-center">Optional information</h4>
         <div id="optional_question" class="optional_question">
             <div class="form-group">
                 {{ render_field(optional_form.Phone_number, class='form-control') }}
