@@ -26,7 +26,7 @@ elly.config["SESSION_PERMANENT"] = False
 # SSP CODES
 elly.config['MAIL_SERVER'] = 'smtp.gmail.com'
 elly.config['MAIL_PORT'] = 465
-elly.config['MAIL_USERNAME'] = 'sspproject404@gmail.com'
+elly.config['MAIL_USERNAME'] = 'sspproject405@gmail.com'
 elly.config['MAIL_PASSWORD'] = 'SSP123456'
 elly.config['MAIL_USE_TLS'] = False
 elly.config['MAIL_USE_SSL'] = True
