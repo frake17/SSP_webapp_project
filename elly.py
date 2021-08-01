@@ -16,12 +16,12 @@ import bcrypt
 from random import randint
 from datetime import datetime, timedelta
 from cryptography.fernet import Fernet
+from twilio.rest import Client
 
 elly = Flask(__name__)
 elly.secret_key = 'any_random_string'
 elly.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 elly.config["SESSION_PERMANENT"] = False
-
 
 # SSP CODES
 elly.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -40,7 +40,7 @@ mail = Mail(elly)
 elly = Blueprint('elly', __name__, template_folder='templates', static_folder='static')
 
 
-def polynomialRollingHash(str): # To hash string
+def polynomialRollingHash(str):  # To hash string
     # P and M
     p = 31
     m = 1e9 + 9
@@ -72,42 +72,42 @@ def signup():
     if request.method == 'POST' and signup_form.validate():
         if request.method == 'POST' and signup_form.validate() and optional_form.validate():
 
-            users_dict = {}
-            db = shelve.open('storage.db', 'c')
+            # users_dict = {}
+            # db = shelve.open('storage.db', 'c')
 
-            users_list = []
-            for key in users_dict:
-                user = users_dict.get(key)
-                if key == signup_form.email.data:
-                    flash("Account already exist")
-                    return redirect(url_for('home'))
+            # users_list = []
+            # for key in users_dict:
+            #    user = users_dict.get(key)
+            #    if key == signup_form.email.data:
+            #        flash("Account already exist")
+            #        return redirect(url_for('home'))
 
-            try:
-                users_dict = db['Users']
-            except:
-                print("Error in retrieving Users from storage.db.")
+            # try:
+            #    users_dict = db['Users']
+            # except:
+            #    print("Error in retrieving Users from storage.db.")
 
-            user = User.User(signup_form.first_name.data, signup_form.last_name.data, signup_form.email.data,
-                             signup_form.password.data)
-            print("===user====", user)
-            users_dict[user.get_email()] = user
-            db['Users'] = users_dict
+            # user = User.User(signup_form.first_name.data, signup_form.last_name.data, signup_form.email.data,
+            #                signup_form.password.data)
+            # print("===user====", user)
+            # users_dict[user.get_email()] = user
+            # db['Users'] = users_dict
 
             # Test codes
-            users_dict = db['Users']
+            # users_dict = db['Users']
 
-            user = users_dict[user.get_email()]
-            print(user.get_first_name(), user.get_last_name(), "was stored in storage.db successfully with user_id ==",
-                  user.get_user_id())
+            # user = users_dict[user.get_email()]
+            # print(user.get_first_name(), user.get_last_name(), "was stored in storage.db successfully with user_id ==",
+            #      user.get_user_id())
 
-            db.close()
+            # db.close()
 
-            session['user_created'] = user.get_first_name() + ' ' + user.get_last_name()
+            # session['user_created'] = user.get_first_name() + ' ' + user.get_last_name()
 
             # MySQL SSP Codes
             r = requests.post('https://www.google.com/recaptcha/api/siteverify',
                               data={'secret':
-                                    '6Lf15hYbAAAAAMq2XaVag56w4fFCNmSo9WkgxOBh',
+                                        '6Lf15hYbAAAAAMq2XaVag56w4fFCNmSo9WkgxOBh',
                                     'response':
                                         request.form['g-recaptcha-response']})
 
@@ -116,29 +116,47 @@ def signup():
 
             if google_response['success']:
 
-                if optional_form.Phone_number.data != '':
-                    phone_num = optional_form.Phone_number.data
+                # if optional_form.Phone_number.data != '' or optional_form.Phone_number.data is not None:
+                if optional_form.Phone_number.data is not None:
+                    phone_key = Fernet.generate_key()
+                    f = Fernet(phone_key)
+                    encrypted_phone_num = f.encrypt(str(optional_form.Phone_number.data).encode())
+                    phone_num = encrypted_phone_num
                 else:
                     phone_num = 'NULL'
+                    phone_key = 'NULL'
 
-                if optional_form.card_number.data != '':
-                    card_num = optional_form.card_number.data
+                # if optional_form.card_number.data != '' or optional_form.card_number.data is not None:
+                if optional_form.card_number.data is not None:
+                    Card_num_key = Fernet.generate_key()
+                    f = Fernet(Card_num_key)
+                    encrypted_card_num = f.encrypt(str(optional_form.card_number.data).encode())
+                    card_num = encrypted_card_num
                 else:
                     card_num = 'NULL'
+                    Card_num_key = 'NULL'
 
-                if optional_form.exp_date.data != '':
-                    exp_date = optional_form.exp_date.data
+                # if optional_form.exp_date.data != '' or optional_form.exp_date.data is not None:
+                if optional_form.exp_date.data is not None:
+                    Card_exp_key = Fernet.generate_key()
+                    f = Fernet(Card_exp_key)
+                    encrypted_card_exp = f.encrypt(str(optional_form.card_number.data).encode())
+                    exp_date = encrypted_card_exp
                 else:
                     exp_date = 'NULL'
+                    Card_exp_key = 'NULL'
 
-                if optional_form.CVV.data != '':
-                    CVV = optional_form.CVV.data
+                # if optional_form.CVV.data != '' or optional_form.CVV.data is not None:
+                if optional_form.CVV.data is not None:
+                    Card_cvv_key = Fernet.generate_key()
+                    f = Fernet(Card_cvv_key)
+                    encrypted_card_cvv = f.encrypt(str(optional_form.CVV.data).encode())
+                    CVV = encrypted_card_cvv
                 else:
                     CVV = 'NULL'
+                    Card_cvv_key = 'NULL'
 
-                current_time = datetime.now()
-                session['date'] = current_time
-                conformation_code = randint(000000, 999999)
+                # conformation_code = randint(000000, 999999)
                 first_name = signup_form.first_name.data
                 last_name = signup_form.last_name.data
                 email = signup_form.email.data
@@ -162,29 +180,73 @@ def signup():
                 encryptedEmail = f.encrypt(email.encode())
 
                 cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-                cursor.execute('INSERT INTO customers_temp VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                               (first_name, last_name, encryptedEmail, hash_password, phone_num, card_num, exp_date, CVV, security_qn, hash_security_ans, key))
+                cursor.execute(
+                    'INSERT INTO customers_temp VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                    (first_name, last_name, encryptedEmail, hash_password, phone_num, card_num, exp_date, CVV,
+                     security_qn, hash_security_ans, key, phone_key, Card_num_key, Card_exp_key, Card_cvv_key))
                 mysql.connection.commit()
                 session['fname'] = first_name
                 session['lname'] = last_name
                 session['EMAIL'] = email
-                msg = Message('Hello', sender='smtp.gmail.com', recipients=[email])
-                msg.body = "Conformation code is: %d" % conformation_code
-                mail.send(msg)
+                # session['code'] = conformation_code
+                session['code_sent'] = False
+                session['Phone Number'] = optional_form.Phone_number.data
 
-                return redirect(url_for('elly.signup_confirmation', conformation_code=conformation_code))
+                return redirect(url_for('elly.signup_confirmation'))
 
-    return render_template('signup(customer).html', form=signup_form, optional_form=optional_form, recap = recaptcha_forms)
+    return render_template('signup(customer).html', form=signup_form, optional_form=optional_form,
+                           recap=recaptcha_forms)
 
 
-@elly.route('/signup_confirmation/<conformation_code>', methods=['GET', 'POST'])  # SSP CODE
-def signup_confirmation(conformation_code):
+@elly.route('/send_email', methods=['GET', 'POST'])  # SSP CODE
+def send_email():
+    email = session.get('EMAIL')
+    conformation_code = randint(000000, 999999)
+    current_time = datetime.now()
+    session['code'] = conformation_code
+    session['date'] = current_time
+
+    msg = Message('Hello', sender='smtp.gmail.com', recipients=[email])
+    msg.body = "Conformation code is: %d" % conformation_code
+    mail.send(msg)
+    session['code_sent'] = True
+    return redirect(url_for('elly.signup_confirmation'))
+
+
+@elly.route('/send_sms', methods=['GET', 'POST'])  # SSP CODE
+def send_sms():
+    account_sid = 'ACd79f39ac30b9742e43c153ea68a04918'
+    auth_token = '40520b503bb15b03ab4e71093eb084b3'
+    client = Client(account_sid, auth_token)
+    phone_num = str(session.get('Phone Number'))
+    conformation_code = randint(000000, 999999)
+    current_time = datetime.now()
+    session['code'] = conformation_code
+    session['date'] = current_time
+
+    message = client.messages \
+        .create(
+        body="Conformation code is: %d" % conformation_code,
+        from_='+19044743219',
+        to='+65' + phone_num
+    )
+
+    print(message.sid)
+    session['code_sent'] = True
+    return redirect(url_for('elly.signup_confirmation'))
+
+
+@elly.route('/signup_confirmation', methods=['GET', 'POST'])  # SSP CODE
+def signup_confirmation():
     time_change = timedelta(minutes=15)
     date = session.get('date')
     Changed_time = date + time_change
     first_name = session['fname']
     last_name = session['lname']
-    if request.method == 'POST':
+    status = session.get('code_sent', False)
+    conformation_code = session.get('code')
+
+    if request.method == 'POST' and status == True:
         code = request.form['confirmation']
         if int(code) == int(conformation_code):
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -195,14 +257,21 @@ def signup_confirmation(conformation_code):
             session['customer'] = True
             session['admin'] = False
             session['deliveryman'] = False
+            session['HR'] = False
+            session['code'] = ''
+            session['code_sent'] = False
             return redirect(url_for('elly.account_created'))
         elif datetime.now() < Changed_time:
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute('DELETE FROM customers_temp WHERE fname = %s and lname = %s', (first_name, last_name))
             mysql.connection.commit()
+            session['code'] = ''
+            session['code_sent'] = False
+            session['Code expire'] = 'Authentication code is expired, please sign up again'
             return redirect(url_for('elly.signup'))
         else:
-            return redirect(url_for('elly.signup_confirmation', conformation_code=conformation_code))
+            session['Wrong Code'] = 'You have inputted the wrong code'
+            return redirect(url_for('elly.signup_confirmation'))
     return render_template('Signup_confirmation.html')
 
 
@@ -224,7 +293,7 @@ def account_created():
     last_name = session.get('lname')
     if request.method == 'POST':
         return redirect(url_for('home'))
-    return render_template('Account_created.html', fname = first_name, lname=last_name)
+    return render_template('Account_created.html', fname=first_name, lname=last_name)
 
 
 @elly.route('/retrieveUsers')
@@ -309,7 +378,7 @@ def login():
             if login_form.email.data not in users_dict:
                 return redirect(url_for('elly.signup'))
 
-    return render_template('login.html', form=login_form) # change to login.html
+    return render_template('login.html', form=login_form)  # change to login.html
 
 
 @elly.route('/logout')

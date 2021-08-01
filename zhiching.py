@@ -246,15 +246,18 @@ def Create_Deliverymen():
         # Symmetric Key Encryption
         # Generate a random Symmetric key. Keep this key in your database
         key = Fernet.generate_key()
+        phone_num_key = Fernet.generate_key()
         # Load the key into the Crypto API
+        f_phone = Fernet(phone_num_key)
         f = Fernet(key)
         # Encrypt the email and convert to bytes by calling f.encrypt()
         encryptedEmail = f.encrypt(email.encode())
+        encrypted_phone = f_phone.encrypt(str(phone_num).encode())
 
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('INSERT INTO staff VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+        cursor.execute('INSERT INTO staff VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
                        (staffid, first_name, last_name, gender, encryptedEmail, role, outlet, 'NULL', region,
-                        hash_password, phone_num, remarks, key))
+                        hash_password, encrypted_phone, remarks, key, phone_num_key))
         mysql.connection.commit()
         session['fname'] = first_name
         session['lname'] = last_name
@@ -394,20 +397,22 @@ def Display_Staff(sort, id):
                     users_list[decryptedEmail] = account
         else:
             if account:
-                print(account)
                 # Decrypt Email
                 # Extract the Symmetric-key from Accounts DB
                 key = account['symmetrickey']
-                print(key)
+                phone_num_key = account['phone_num_key']
                 # Load the key
                 f = Fernet(key)
+                f_phone = Fernet(phone_num_key)
                 # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
                 # using.encode()
                 decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+                decryptedPhone_Binary = f_phone.decrypt(account['phone_num'].encode())
                 # call .decode () to convert from Binary to String – to be displayed in Home.html.
                 decryptedEmail = decryptedEmail_Binary.decode()
-                print(decryptedEmail)
+                decryptedPhone = decryptedPhone_Binary.decode()
                 users_list[decryptedEmail] = account
+                users_list.get(decryptedEmail)['phone_num'] = decryptedPhone
         account = cursor.fetchone()
     return render_template('Display_Deliverymen.html', count=len(users_list), users_list=users_list,
                            order_list=order_list)
@@ -418,7 +423,7 @@ def update_Deliverymen(id):
     update_Deliverymen_form = deliverymen_profile_update(request.form)
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute("SELECT * FROM Staff")
-    account = cursor.fetchone()
+    account_list = cursor.fetchall()
     if request.method == 'POST' and update_Deliverymen_form.validate():
         # users_dict = {}
         # db = shelve.open('storage.db', 'w')
@@ -437,26 +442,42 @@ def update_Deliverymen(id):
         # db.close()
 
         # session['Deliverymen_updated'] = user.get_first_name() + ' ' + user.get_last_name()
-        if account:
+        for account in account_list:
             if account['StaffID'] == id:
                 fname = update_Deliverymen_form.first_name.data
                 lname = update_Deliverymen_form.last_name.data
                 gender = update_Deliverymen_form.gender.data
                 email = update_Deliverymen_form.email.data
                 phone_num = update_Deliverymen_form.contact_no.data
+                password = update_Deliverymen_form.password.data
                 region = update_Deliverymen_form.regions.data
                 remarks = update_Deliverymen_form.remarks.data
                 key = account['symmetrickey']
+                phone_key = account['phone_num_key']
 
                 f = Fernet(key)
+                f_phone = Fernet(phone_key)
                 # Encrypt the email and convert to bytes by calling f.encrypt()
                 encryptedEmail = f.encrypt(email.encode())
+                encryptedPhone = f_phone.encrypt(str(phone_num).encode())
 
-                cursor.execute(
-                    'UPDATE Staff SET fname = %s, lname = %s, gender = %s, encrypted_email = %s, phone_num = %s, region = %s, remarks = %s WHERE StaffID = %s',
-                    (
-                        fname, lname, gender, encryptedEmail, phone_num, region, remarks, id
-                    ))
+                salt = bcrypt.gensalt(rounds=16)
+                # A hashed value is created with hashpw() function, which takes the cleartext value and a salt as
+                # parameters.
+                hash_password = bcrypt.hashpw(password.encode(), salt)
+
+                if password != '' or password != ' ':
+                    cursor.execute(
+                        'UPDATE Staff SET fname = %s, lname = %s, gender = %s, encrypted_email = %s, phone_num = %s, region = %s, remarks = %s, hashed_password = %s WHERE StaffID = %s',
+                        (
+                            fname, lname, gender, encryptedEmail, encryptedPhone, region, remarks, hash_password, id
+                        ))
+                else:
+                    cursor.execute(
+                        'UPDATE Staff SET fname = %s, lname = %s, gender = %s, encrypted_email = %s, phone_num = %s, region = %s, remarks = %s, WHERE StaffID = %s',
+                        (
+                            fname, lname, gender, encryptedEmail, encryptedPhone, region, remarks, id
+                        ))
                 mysql.connection.commit()
 
         return redirect(url_for('qing.Display_Staff'))
@@ -475,22 +496,25 @@ def update_Deliverymen(id):
         # update_Deliverymen_form.regions.data = user.get_regions()
         # update_Deliverymen_form.remarks.data = user.get_remarks()
 
-        if account:
+        for account in account_list:
             if account['StaffID'] == id:
                 key = account['symmetrickey']
+                phone_key = account['phone_num_key']
                 # Load the key
                 f = Fernet(key)
+                f_phone = Fernet(phone_key)
                 # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
                 # using.encode()
                 decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+                decryptedPhone_Binary = f_phone.decrypt(account['phone_num'].encode())
                 # call .decode () to convert from Binary to String – to be displayed in Home.html.
                 decryptedEmail = decryptedEmail_Binary.decode()
-                print(update_Deliverymen_form)
+                decryptedPhone = decryptedPhone_Binary.decode()
                 update_Deliverymen_form.first_name.data = account['fname']
                 update_Deliverymen_form.last_name.data = account['lname']
                 update_Deliverymen_form.gender.data = account['gender']
                 update_Deliverymen_form.email.data = decryptedEmail
-                update_Deliverymen_form.contact_no.data = account['phone_num']
+                update_Deliverymen_form.contact_no.data = decryptedPhone
                 update_Deliverymen_form.regions.data = account['region']
                 update_Deliverymen_form.remarks.data = account['remarks']
 
@@ -989,6 +1013,7 @@ def DeliverymenProfile():
     Deliverymen_list = []
     # Deliverymen = Deliverymen_dict.get(current_id)
     # Deliverymen_list.append(Deliverymen)
+    cursor.execute('Select * From Staff Where role = "Deliveryman"')
     account = cursor.fetchone()
     if account:
         key = account['symmetrickey']
@@ -996,7 +1021,7 @@ def DeliverymenProfile():
         f = Fernet(key)
         # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
         # using.encode()
-        decryptedEmail_Binary = f.decrypt(account['email'].encode())
+        decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
         # call .decode () to convert from Binary to String – to be displayed in Home.html.
         decryptedEmail = decryptedEmail_Binary.decode()
         if decryptedEmail == email:

@@ -13,6 +13,10 @@ id int NOT NULL AUTO_INCREMENT,
  security_qn varchar(100),
  hashed_security_ans varchar(100),
  symmetrickey varchar(255) NULL,
+ Phone_num_key varchar(255) NULL,
+ card_num_key varchar(255) NULL,
+ card_exp_date_key varchar(255) NULL,
+ card_cvv_key varchar(255) NULL,
  PRIMARY KEY (id)
 )ENGINE=InnoDB AUTO_INCREMENT=2;
 
@@ -30,7 +34,11 @@ id int NOT NULL AUTO_INCREMENT,
  security_qn varchar(100),
  hashed_security_ans varchar(100),
  symmetrickey varchar(255) NULL,
- PRIMARY KEY (id)
+ Phone_num_key varchar(255) NULL,
+ card_num_key varchar(255) NULL,
+ card_exp_date_key varchar(255) NULL,
+ card_cvv_key varchar(255) NULL,
+  PRIMARY KEY (id)
 )ENGINE=InnoDB AUTO_INCREMENT=2;
 
 DROP TABLE IF EXISTS Temperature;
@@ -58,10 +66,11 @@ CREATE TABLE IF NOT EXISTS Staff (
  order_number varchar(255) NULL,
  region varchar(255) NULL,
  hashed_password varchar (255) NULL,
- phone_num int(8) NULL,
+ phone_num varchar(255) NULL,
  remarks varchar(255) NULL,
  symmetrickey varchar(255) NULL,
+ phone_num_key varchar(255) NULL,
  PRIMARY KEY (StaffID)
 )ENGINE=InnoDB AUTO_INCREMENT=2;
 INSERT INTO Staff(StaffID, encrypted_email,symmetrickey, hashed_password, role)
-values ("000","gAAAAABg6pq-yhvczlrQ8Gz3lN-UwpCmluAaAAHFpFeZsf9WZiXfSvnY__6QFK2N27FlRxHg3H7xUAY1wm0w0aSz7ZSh_ZP_jA==","pvZV-9MxXPwF8CRLEonHZAcGPzKdBZQlR9SyEQbjoEk=", "$2b$16$eEP24wgsMD1DjL22qP/kW.SbA85r59mccmTNCKYpvTGXNC77DNAXW", "HR");
+values ("000","gAAAAABhBUVeULCjFed6XLwpEL_1kbUUFZsJtEgzcpkngkZili2oISqF_JMrhtJh39L28IoFztXNTW_UPdnw4jmrCUlMVxVwpeaU-OddLRfOhCUFJmaxFQ8=","ikDKPeTwRecH6IdzVS-wRR1T3N0lXyYKGv8nseu-bhs=", "$2b$16$eEP24wgsMD1DjL22qP/kW.SbA85r59mccmTNCKYpvTGXNC77DNAXW", "HR");

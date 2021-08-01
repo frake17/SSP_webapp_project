@@ -6,6 +6,9 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 
 import item
 from Forms import Item, Order, self_collect, Supplier, self_collection_update
+from flask_mysqldb import MySQL
+import MySQLdb.cursors
+from cryptography.fernet import Fernet
 
 UPLOAD_FOLDER = '/static/img/uploaded'
 ALLOWED_EXTENSIONS = {'png'}
@@ -15,6 +18,14 @@ kin.secret_key = 'any_random_string'
 kin.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 kin.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 kin.config["SESSION_PERMANENT"] = False
+
+kin.config['MYSQL_HOST'] = 'localhost'
+kin.config['MYSQL_USER'] = 'root'
+kin.config['MYSQL_PASSWORD'] = '100carbook'
+kin.config['MYSQL_DB'] = 'pythonlogin'
+
+mysql = MySQL(kin)
+
 kin = Blueprint('kin', __name__, template_folder='templates', static_folder='static')
 
 
@@ -339,11 +350,40 @@ def collect_date_location():
     return render_template('self_collect_details.html', total=total, stores=locations_list)
 
 
-@kin.route('/order', methods=['GET', 'POST'])
+@kin.route('/order', methods=['GET', 'POST']) # To test
 def delivery_order_details():
     count = 1
     date = session.get('date', None)
     create_order = Order(request.form)
+    fname = session.get('fname', None)
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('Select * From Staff Where fname = %s', fname)
+    account = cursor.fetchone()
+    if account:
+        if account['Phone_num'] != 'NULL':
+            key = account['Phone_num_key']
+            f = Fernet(key)
+            decrypted_phone_Binary = f.decrypt(account['Phone_num'].encode())
+            decrypted_phone = decrypted_phone_Binary.decode()
+            create_order.number.data = decrypted_phone
+        if account['card_num'] != 'NULL':
+            key = account['card_num_key']
+            f = Fernet(key)
+            decrypted_card_num_Binary = f.decrypt(account['card_num'].encode())
+            decrypted_card_num = decrypted_card_num_Binary.decode()
+            create_order.card_number.date = decrypted_card_num
+        if account['card_exp_date'] != 'NULL':
+            key = account['card_exp_date_key']
+            f = Fernet(key)
+            decrypted_card_exp_Binary = f.decrypt(account['card_exp_date'].encode())
+            decrypted_card_exp = decrypted_card_exp_Binary.decode()
+            create_order.exp_date.data = decrypted_card_exp
+        if account['card_cvv'] != 'NULL':
+            key = account['card_cvv_key']
+            f = Fernet(key)
+            decrypted_card_cvv_Binary = f.decrypt(account['card_cvv'].encode())
+            decrypted_card_cvv = decrypted_card_cvv_Binary.decode()
+            create_order.cvv.data = decrypted_card_cvv
     if request.method == 'POST' and create_order.validate():
         users_dict = {}
         db = shelve.open('storage.db', 'c')
@@ -371,13 +411,42 @@ def delivery_order_details():
     return render_template('order_details_delivery.html', form=create_order)
 
 
-@kin.route('/order_self', methods=['POST', 'GET'])
+@kin.route('/order_self', methods=['POST', 'GET']) # To Test
 def self_collect_order_details():
     count = 1
     create_order_self = self_collect(request.form)
     date = session.get('date', None)
     location = session.get('location', None)
     time = session.get('time', None)
+    fname = session.get('fname', None)
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('Select * From Staff Where fname = %s', fname)
+    account = cursor.fetchone()
+    if account:
+        if account['Phone_num'] != 'NULL':
+            key = account['Phone_num_key']
+            f = Fernet(key)
+            decrypted_phone_Binary = f.decrypt(account['Phone_num'].encode())
+            decrypted_phone = decrypted_phone_Binary.decode()
+            create_order_self.number.data = decrypted_phone
+        if account['card_num'] != 'NULL':
+            key = account['card_num_key']
+            f = Fernet(key)
+            decrypted_card_num_Binary = f.decrypt(account['card_num'].encode())
+            decrypted_card_num = decrypted_card_num_Binary.decode()
+            create_order_self.card_number.date = decrypted_card_num
+        if account['card_exp_date'] != 'NULL':
+            key = account['card_exp_date_key']
+            f = Fernet(key)
+            decrypted_card_exp_Binary = f.decrypt(account['card_exp_date'].encode())
+            decrypted_card_exp = decrypted_card_exp_Binary.decode()
+            create_order_self.exp_date.data = decrypted_card_exp
+        if account['card_cvv'] != 'NULL':
+            key = account['card_cvv_key']
+            f = Fernet(key)
+            decrypted_card_cvv_Binary = f.decrypt(account['card_cvv'].encode())
+            decrypted_card_cvv = decrypted_card_cvv_Binary.decode()
+            create_order_self.cvv.data = decrypted_card_cvv
     if request.method == 'POST' and create_order_self.validate():
         users_dict = {}
         location_dict = {}

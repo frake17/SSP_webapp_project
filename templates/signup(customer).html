@@ -2,6 +2,12 @@
 {% block title %}Sign Up{% endblock %}
 
 {% block content %}
+{% if 'Code expire' in session %}
+<div class="alert alert-danger alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('Code expire', None) }}
+</div>
+{% endif %}
 {% from "includes/_formHelper.html" import render_field %}
 <script src='https://www.google.com/recaptcha/api.js'></script>
 <h1 class="display-4 text-center">Sign Up</h1>

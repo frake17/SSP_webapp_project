@@ -10,7 +10,14 @@ salt = bcrypt.gensalt(rounds=16)
 hash_password = bcrypt.hashpw(password.encode(), salt)
 print(hash_password)
 
-email = 'Hr@gmail.com'
+phone = '1111 1111'
+key = Fernet.generate_key()
+f = Fernet(key)
+phone = f.encrypt(phone.encode())
+print(key)
+print(phone)
+
+email = 'shengsionghr@gmail.com'
 key = Fernet.generate_key()
 # Load the key into the Crypto API
 print('key: ', key)
@@ -19,3 +26,6 @@ f = Fernet(key)
 # Encrypt the email and convert to bytes by calling f.encrypt()
 encryptedEmail = f.encrypt(email.encode())
 print(encryptedEmail)
+
+decryptedEmail = f.decrypt(encryptedEmail)
+print(decryptedEmail)

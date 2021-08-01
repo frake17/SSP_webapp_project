@@ -204,7 +204,7 @@ class SignUp(Form):
 
 
 class optional_signup(Form):
-    Phone_number = IntegerField('Phone number', validators=(validators.Optional(),))
+    Phone_number = IntegerField('Phone number(include if want to authenticate through SMS)', validators=(validators.Optional(),))
     card_number = IntegerField('Card number', validators=(validators.Optional(),))
     exp_date = DateField('Expiry date(mm/yyyy)',format='%m/%Y',validators=(validators.Optional(),))
     CVV = IntegerField('CVV', validators=(validators.Optional(),))
@@ -265,6 +265,7 @@ class deliverymen_profile_update(Form):
     gender = StringField('Gender: ', [validators.DataRequired()])
     email = StringField('Email :', [validators.Length(min=1, max=150), validators.DataRequired()])
     contact_no = IntegerField('Contact number :', [validators.DataRequired()])
+    password = PasswordField('Password(leave blank if don"t want to update):', [validators.DataRequired()])
     regions = RadioField('Regions in charge :', choices=[('N', 'North'), ('S', 'South'), ('E', 'East'), ('W', 'West'), ('NULL', 'NULL')],
                          default='NULL')
     remarks = TextAreaField('Remarks :', [validators.Optional()])
