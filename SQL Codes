@@ -74,3 +74,13 @@ CREATE TABLE IF NOT EXISTS Staff (
 )ENGINE=InnoDB AUTO_INCREMENT=2;
 INSERT INTO Staff(StaffID, encrypted_email,symmetrickey, hashed_password, role)
 values ("000","gAAAAABhBUVeULCjFed6XLwpEL_1kbUUFZsJtEgzcpkngkZili2oISqF_JMrhtJh39L28IoFztXNTW_UPdnw4jmrCUlMVxVwpeaU-OddLRfOhCUFJmaxFQ8=","ikDKPeTwRecH6IdzVS-wRR1T3N0lXyYKGv8nseu-bhs=", "$2b$16$eEP24wgsMD1DjL22qP/kW.SbA85r59mccmTNCKYpvTGXNC77DNAXW", "HR");
+
+DROP TABLE IF EXISTS CustomerLoginActivity;
+ CREATE TABLE IF NOT EXISTS CustomerLoginActivity(
+ id int NOT NULL AUTO_INCREMENT,
+  email varchar(200) NOT NULL,
+  login_time datetime,
+  location varchar(1000),
+  #no_of_login_failure int,
+  PRIMARY KEY (id)
+)ENGINE=InnoDB AUTO_INCREMENT=1;

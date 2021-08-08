@@ -17,6 +17,8 @@ from random import randint
 from datetime import datetime, timedelta
 from cryptography.fernet import Fernet
 from twilio.rest import Client
+import random
+import string
 
 elly = Flask(__name__)
 elly.secret_key = 'any_random_string'
@@ -201,7 +203,7 @@ def signup():
 @elly.route('/send_email', methods=['GET', 'POST'])  # SSP CODE
 def send_email():
     email = session.get('EMAIL')
-    conformation_code = randint(000000, 999999)
+    conformation_code = ''.join([random.choice(string.ascii_letters + string.digits + string.punctuation ) for n in range(12)])
     current_time = datetime.now()
     session['code'] = conformation_code
     session['date'] = current_time
@@ -219,7 +221,7 @@ def send_sms():
     auth_token = '40520b503bb15b03ab4e71093eb084b3'
     client = Client(account_sid, auth_token)
     phone_num = str(session.get('Phone Number'))
-    conformation_code = randint(000000, 999999)
+    conformation_code = ''.join([random.choice(string.ascii_letters + string.digits + string.punctuation ) for n in range(12)])
     current_time = datetime.now()
     session['code'] = conformation_code
     session['date'] = current_time
