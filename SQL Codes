@@ -41,19 +41,6 @@ id int NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (id)
 )ENGINE=InnoDB AUTO_INCREMENT=2;
 
-DROP TABLE IF EXISTS Temperature;
-CREATE TABLE IF NOT EXISTS Temperature (
-id int NOT NULL AUTO_INCREMENT,
- Temperature float(2,2) NOT NULL,
- NRIC varchar(9) NOT NULL,
- phone_num int(8) NOT NULL,
- Date date NOT NULL,
- time_enter varchar(4) NOT NULL,
- time_left varchar(4) NOT NULL,
- outlet varchar(255) NOT NULL,
- PRIMARY KEY (id)
-)ENGINE=InnoDB AUTO_INCREMENT=2;
-
 DROP TABLE IF EXISTS Staff;
 CREATE TABLE IF NOT EXISTS Staff (
  StaffID varchar(50) NOT NULL,
