@@ -11,7 +11,8 @@ class Item(Form):
     brand = StringField('Brand Name', [validators.DataRequired()])
     amt_of_stock = IntegerField('Current stock', [validators.DataRequired()])
     stock_unit = SelectField('Unit for stocks', [validators.DataRequired()],
-                             choices=[('Kg', 'Kg'), ('L', 'L'), ('boxes', 'boxes')], render_kw={'onchange': "myFunction()"})
+                             choices=[('Kg', 'Kg'), ('L', 'L'), ('boxes', 'boxes')],
+                             render_kw={'onchange': "myFunction()"})
     subcategory_boxes = IntegerField('Per box', [validators.Optional()])
     price = FloatField('Price', [validators.DataRequired()])
     origin = StringField('Origin', [validators.DataRequired()])
@@ -57,7 +58,7 @@ class Order(Form):
     level = IntegerField('Level', [validators.number_range(min=1, max=50), validators.DataRequired()])
     door_number = StringField('Door_number', [validators.DataRequired()])
     card_number = IntegerField('Card_number', [
-                                               validators.DataRequired()])
+        validators.DataRequired()])
     exp_date = DateField('Exp_date(mm/yyyy)', [validators.DataRequired()], format='%m/%Y')
     cvv = IntegerField('Card_cvv', [validators.number_range(min=000, max=999), validators.DataRequired()])
     card_type = SelectField('Card_type', choices=[('CC', 'Credit Card'), ('DC', 'Debit Card')])
@@ -99,7 +100,7 @@ class Order(Form):
 class self_collect(Form):
     name = StringField('name', [validators.DataRequired()])
     card_number = IntegerField('Card number', [
-                                               validators.DataRequired()])
+        validators.DataRequired()])
     exp_date = DateField('Expiry date(mm/yyyy)', [validators.DataRequired()], format='%m/%Y')
     cvv = IntegerField('Card cvv', [validators.DataRequired()])
     card_type = SelectField('Card type', choices=[('CC', 'Credit Card'), ('DC', 'Debit Card')])
@@ -136,7 +137,8 @@ class self_collection_update(Form):
                                                    message='Contact number should be 8 digits'),
                            validators.data_required()])
     status = SelectField('Status',
-                         choices=[('collected', 'collected'), ('Not collected', 'Not collected'), ('reschedule', 'reschedule')])
+                         choices=[('collected', 'collected'), ('Not collected', 'Not collected'),
+                                  ('reschedule', 'reschedule')])
 
     def validate_number(form, number):
         length = str(number.data)
@@ -161,18 +163,19 @@ class Supplier(Form):
             raise ValidationError('Only digits are allowed')
 
 
-class recaptcha_form(Form):
+class recaptcha_form(Form): # SSP CODE DONE BY KIN
     recaptcha = RecaptchaField()
 
 
-class SignUp(Form):
+class SignUp(Form):  # SSP CODE DONE BY KIN
     first_name = StringField('First Name', [validators.Length(min=1, max=150), validators.DataRequired()])
     last_name = StringField('Last Name', [validators.Length(min=1, max=150), validators.DataRequired()])
     email = StringField('Email', [validators.Length(min=1, max=150), validators.DataRequired(), validators.Email()])
     password = PasswordField('Password', [validators.DataRequired(), validators.EqualTo('confirm_password')])
     confirm_password = PasswordField('Confirm Password', [validators.DataRequired(), validators.EqualTo('password')])
-    security_question = SelectField('Security question', [validators.DataRequired()], choices = [('1', 'option 1'), ('2', 'option 2'), ('3', 'option 3')]
-                                                                    )
+    security_question = SelectField('Security question', [validators.DataRequired()],
+                                    choices=[('1', 'What is your favorite number? '), ('2', 'option 2'), ('3', 'option 3')]
+                                    )
     security_answer = StringField('Security answers', [validators.DataRequired()])
     submit = SubmitField('Sign Up')
 
@@ -182,9 +185,9 @@ class SignUp(Form):
         upper_case = False
         lower_case = False
         numeric_number = False
-        if len((str(password_value ))) < 8:
+        if len((str(password_value))) < 8:
             raise ValidationError('Password should be at least 8 letters/digits long')
-        for i in str(password_value ):
+        for i in str(password_value):
             if i.isupper():
                 upper_case = True
             if i.islower():
@@ -203,28 +206,73 @@ class SignUp(Form):
             raise ValidationError('Password must contain at least 1 special character')
 
 
-class optional_signup(Form):
-    Phone_number = IntegerField('Phone number(include if want to authenticate through SMS)', validators=(validators.Optional(),))
+class optional_signup(Form):  # SSP CODE DONE BY KIN
+    Phone_number = IntegerField('Phone number(include if want to authenticate through SMS)',
+                                validators=(validators.Optional(),))
     card_number = IntegerField('Card number', validators=(validators.Optional(),))
-    exp_date = DateField('Expiry date(mm/yyyy)',format='%m/%Y',validators=(validators.Optional(),))
+    exp_date = DateField('Expiry date(mm/yyyy)', format='%m/%Y', validators=(validators.Optional(),))
     CVV = IntegerField('CVV', validators=(validators.Optional(),))
 
 
-class Login(Form):
+class Login(Form):  # SSP CODE DONE BY KIN
     email = StringField('Email', [validators.Length(min=1, max=150), validators.DataRequired()])
     password = PasswordField('Password', [validators.DataRequired()])
     submit = SubmitField('Log In')
 
 
-class UpdateProfile(Form):
+class UpdateProfile(Form):  # SSP CODE DONE BY ELLY
     first_name = StringField('First Name', [validators.Length(min=1, max=150), validators.DataRequired()])
     last_name = StringField('Last Name', [validators.Length(min=1, max=150), validators.DataRequired()])
     email = StringField('Email', [validators.Length(min=1, max=150), validators.DataRequired(), validators.Email()])
 
 
-class UpdatePassword(Form):
+class FindEmail(Form):  # SSP CODE DONE BY ELLY
+    email = StringField('Email', [validators.Length(min=1, max=150), validators.DataRequired(), validators.Email()])
+
+
+# ssp
+class PwSecurity(Form):  # SSP CODE DONE BY ELLY
+    security_answer = StringField('Security answers', [validators.DataRequired()])
+    security_question = SelectField('Security question', [validators.DataRequired()],
+                                    choices=[('1', 'What is your favorite number? '), ('2', 'option 2'), ('3', 'option 3')]
+                                    )
+
+
+# ssp
+class ForgetPassword(Form):  # SSP CODE DONE BY ELLY
+    newpassword = PasswordField('Password', [validators.DataRequired(), validators.EqualTo('cpassword')])
+    cpassword = PasswordField('Confirm Password')
+
+
+class UpdatePassword(Form):  # SSP CODE DONE BY ELLY
     password = PasswordField('Password', [validators.DataRequired(), validators.EqualTo('confirm_password')])
     confirm_password = PasswordField('Confirm Password')
+
+    def validate_password(form, password):
+        password_value = password.data
+        special_characters = False
+        upper_case = False
+        lower_case = False
+        numeric_number = False
+        if len((str(password_value))) < 8:
+            raise ValidationError('Password should be at least 8 letters/digits long')
+        for i in str(password_value):
+            if i.isupper():
+                upper_case = True
+            if i.islower():
+                lower_case = True
+            if i.isdigit():
+                numeric_number = True
+            if not i.isalnum():
+                special_characters = True
+        if not upper_case:
+            raise ValidationError('Password must contain at least 1 upper case letter')
+        if not lower_case:
+            raise ValidationError('Password must contain at least 1 lower case letter')
+        if not numeric_number:
+            raise ValidationError('Password must contain at least 1 digit')
+        if not special_characters:
+            raise ValidationError('Password must contain at least 1 special character')
 
 
 class CreateLocation(Form):
@@ -245,11 +293,13 @@ class CreateStaff(Form):
                          choices=[('', 'Select'), ('F', 'Female'), ('M', 'Male')], default='')
     email = StringField('Email :', [validators.Length(min=1, max=150), validators.DataRequired()])
     contact_no = IntegerField('Contact number :', [validators.DataRequired()])
-    regions = RadioField('Regions in charge(For deliverymen) :', choices=[('N', 'North'), ('S', 'South'), ('E', 'East'), ('W', 'West'),('NULL',
-                                                                                                                       'NULL')],
+    regions = RadioField('Regions in charge(For deliverymen) :',
+                         choices=[('N', 'North'), ('S', 'South'), ('E', 'East'), ('W', 'West'), ('NULL',
+                                                                                                 'NULL')],
                          default='NULL')
     remarks = TextAreaField('Remarks :', [validators.Optional()])
-    role = SelectField('Staff Role', [validators.DataRequired()], choices=[('Staff', 'Staff'), ('Manager', 'Manager'), ('Deliveryman', 'Deliveryman')])
+    role = SelectField('Staff Role', [validators.DataRequired()],
+                       choices=[('Staff', 'Staff'), ('Manager', 'Manager'), ('Deliveryman', 'Deliveryman')])
 
     def validate_contact_no(form, contact_no):
         length = str(contact_no.data)
@@ -264,9 +314,9 @@ class CreateStaff(Form):
         upper_case = False
         lower_case = False
         numeric_number = False
-        if len((str(password_value ))) < 8:
+        if len((str(password_value))) < 8:
             raise ValidationError('Password should be at least 8 letters/digits long')
-        for i in str(password_value ):
+        for i in str(password_value):
             if i.isupper():
                 upper_case = True
             if i.islower():
@@ -292,7 +342,8 @@ class deliverymen_profile_update(Form):
     email = StringField('Email :', [validators.Length(min=1, max=150), validators.DataRequired()])
     contact_no = IntegerField('Contact number :', [validators.DataRequired()])
     password = PasswordField('Password(leave blank if don"t want to update):', [validators.DataRequired()])
-    regions = RadioField('Regions in charge :', choices=[('N', 'North'), ('S', 'South'), ('E', 'East'), ('W', 'West'), ('NULL', 'NULL')],
+    regions = RadioField('Regions in charge :',
+                         choices=[('N', 'North'), ('S', 'South'), ('E', 'East'), ('W', 'West'), ('NULL', 'NULL')],
                          default='NULL')
     remarks = TextAreaField('Remarks :', [validators.Optional()])
 
@@ -306,7 +357,7 @@ class deliverymen_profile_update(Form):
 
 class deliverymen_status_update(Form):
     name = StringField('name', [validators.data_required()])
-    number = IntegerField('Phone_number',[validators.data_required()])
+    number = IntegerField('Phone_number', [validators.data_required()])
     level = IntegerField('Level', [validators.number_range(min=1, max=50), validators.DataRequired()])
     door_number = IntegerField('Door_number', [validators.DataRequired()])
     postal = IntegerField('Postal_code', [validators.number_range(min=1, max=999999), validators.DataRequired()])

@@ -14,18 +14,21 @@
 </head>
 <body>
 {% block navbar %}
-    {% if 'current' in session and 'admin' in session and 'customer' in session and 'deliveryman' in session%}
-        {% if session['admin'] == True %}
+    {% if 'email' in session and 'Staff' in session and 'Customer' in session and 'Deliveryman' in session and 'HR' in session%}
+        {% if session['Staff'] == True %}
             {% include 'includes/_navbar_admin.html' %}
         {% endif %}
-        {% if session['customer'] == True %}
+        {% if session['Customer'] == True %}
             {% include 'includes/_navbar_cus.html' %}
         {% endif %}
-        {% if session['deliveryman'] == True %}
+        {% if session['Deliveryman'] == True %}
             {% include 'includes/_navbar_deliveryman.html' %}
         {% endif %}
-            {% if session['customer'] == False and session['admin'] == False and session['deliveryman'] == False %}
-        {% include 'includes/_navbar.html' %}
+        {% if session['HR'] == True %}
+            {% include 'includes/_navbar_HR.html' %}
+        {% endif %}
+        {% if session['Customer'] == False and session['Staff'] == False and session['Deliveryman'] == False and session['HR'] == False %}
+            {% include 'includes/_navbar.html' %}
         {% endif %}
     {% else %}
         {% include 'includes/_navbar.html' %}

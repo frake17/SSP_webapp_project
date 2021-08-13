@@ -38,35 +38,36 @@ p {
         <td><p>{{ users_list.get(user)['fname'] }} </p></td>
     </tr>
     <tr>
-        <td><a class="btn btn-warning" href="/updatePassword/{{user}}">Update Password</a></td>
+        <td><a class="btn btn-warning" href="/pwSecurity">Update Password</a></td>
         <td>Last Name:</td>
         <td><p>{{ users_list.get(user)['lname'] }}</p></td>
     </tr>
+    <!--
     <tr>
         <td>
-            <form action="{{ url_for('elly.delete_acc', email = user ) }}" method="POST"> <!-- add action -->
+            <form action="{{ url_for('elly.delete_acc', email = user ) }}" method="POST">
                 <button class="btn btn-danger" data-target="#myModal_user" data-toggle="modal"
                         type="button">
                     Delete Account
                 </button>
 
-                <!-- The Modal -->
+
                 <div class="modal" id="myModal_user">
                     <div class="modal-dialog">
                         <div class="modal-content">
 
-                            <!-- Modal Header -->
+
                             <div class="modal-header">
                                 <h4 class="modal-title">Delete Confirmation</h4>
                                 <button class="close" data-dismiss="modal" type="button">&times;</button>
                             </div>
 
-                            <!-- Modal body -->
+
                             <div class="modal-body">
                                 Are you sure you want to delete your account?
                             </div>
 
-                            <!-- Modal footer -->
+
                             <div class="modal-footer">
                                 <input class="btn btn-danger" type="submit" value="Delete">
                                 <button class="btn btn-secondary" data-dismiss="modal" type="button">Cancel</button>
@@ -78,12 +79,12 @@ p {
 
             </form>
         </td>
-        <td>Email:</td>
-        <td><p>{{ user }}</p></td>
     </tr>
+    -->
     <tr>
         <td><a class="btn btn-warning" href="/loginActivity(cust)">Login Activity</a></td>
-
+        <td>Email:</td>
+        <td><p>{{ user }}</p></td>
     </tr>
 </table>
 {% endfor %}
