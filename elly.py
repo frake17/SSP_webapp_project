@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 
 import Location
 import User
-from Forms import SignUp, Login, CreateLocation, UpdateProfile, UpdatePassword, optional_signup, recaptcha_form
+from Forms import SignUp, Login, CreateLocation, UpdateProfile, UpdatePassword, optional_signup, recaptcha_form, UpdatePassword, ForgetPassword, PwSecurity, FindEmail
 # SSP CODES
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
@@ -40,7 +40,7 @@ mail = Mail(elly)
 elly = Blueprint('elly', __name__, template_folder='templates', static_folder='static')
 
 
-def polynomialRollingHash(str):  # To hash string
+def polynomialRollingHash(str):  # SSP CODE DONE BY KIN : To hash string
     # P and M
     p = 31
     m = 1e9 + 9
@@ -59,12 +59,12 @@ def polynomialRollingHash(str):  # To hash string
     return int(hash_val)
 
 
-@elly.route('/loginActivity(cust)')
+@elly.route('/loginActivity(cust)')  # SSP CODE DONE BY ZHICHING
 def loginActivity():
     return render_template('loginActivity(cust).html')
 
 
-@elly.route('/signup', methods=['GET', 'POST'])
+@elly.route('/signup', methods=['GET', 'POST'])  # SSP CODE DONE BY KIN
 def signup():
     signup_form = SignUp(request.form)
     optional_form = optional_signup(request.form)
@@ -172,17 +172,17 @@ def signup():
                 cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
                 cursor.execute('SELECT * FROM Customers')
                 account = cursor.fetchone()
-                # while account is not None:  # RE-ENABLE ONCE DONE TESTING
-                #    fname = account['fname']
-                #    lname = account['lname']
-                #    key = account['symmetrickey']
-                #    f = Fernet(key)
-                #    decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
-                #    decryptedEmail = decryptedEmail_Binary.decode()
-                #    if (fname == first_name and lname == last_name) or decryptedEmail == email:
-                #        status = 'User is registered'
-                #        break
-                #    account = cursor.fetchone()
+                while account is not None:  # RE-ENABLE ONCE DONE TESTING
+                    fname = account['fname']
+                    lname = account['lname']
+                    key = account['symmetrickey']
+                    f = Fernet(key)
+                    decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+                    decryptedEmail = decryptedEmail_Binary.decode()
+                    if (fname == first_name and lname == last_name) or decryptedEmail == email:
+                        status = 'User is registered'
+                        break
+                    account = cursor.fetchone()
                 if status != 'User is registered':
                     print('done')
                     # Password Hashing
@@ -222,7 +222,7 @@ def signup():
                            recap=recaptcha_forms)
 
 
-@elly.route('/send_email', methods=['GET', 'POST'])  # SSP CODE
+@elly.route('/send_email', methods=['GET', 'POST'])  # SSP CODE DONE BY KIN
 def send_email():
     email = session.get('email')
     conformation_code = randint(000000, 999999)
@@ -230,14 +230,14 @@ def send_email():
     session['code'] = conformation_code
     session['date'] = current_time
 
-    msg = Message('Hello', sender='smtp.gmail.com', recipients=[email])
-    msg.body = "Conformation code is: %d" % conformation_code
+    msg = Message('Sheng Siong Supermarket registration', sender='smtp.gmail.com', recipients=[email])
+    msg.body = "Your registration authentication code: %d" % conformation_code
     mail.send(msg)
     session['code_sent'] = True
     return redirect(url_for('elly.signup_confirmation'))
 
 
-@elly.route('/send_sms', methods=['GET', 'POST'])  # SSP CODE
+@elly.route('/send_sms', methods=['GET', 'POST'])  # SSP CODE DONE BY KIN
 def send_sms():
     account_sid = 'ACd79f39ac30b9742e43c153ea68a04918'
     auth_token = '40520b503bb15b03ab4e71093eb084b3'
@@ -250,7 +250,7 @@ def send_sms():
 
     message = client.messages \
         .create(
-        body="Conformation code is: %d" % conformation_code,
+        body="Your registration authentication code: %d" % conformation_code,
         from_='+19044743219',
         to='+65' + phone_num
     )
@@ -260,7 +260,7 @@ def send_sms():
     return redirect(url_for('elly.signup_confirmation'))
 
 
-@elly.route('/signup_confirmation', methods=['GET', 'POST'])  # SSP CODE
+@elly.route('/signup_confirmation', methods=['GET', 'POST'])  # SSP CODE DONE BY KIN
 def signup_confirmation():
     time_change = timedelta(minutes=5)
     date = session.get('date')
@@ -270,7 +270,7 @@ def signup_confirmation():
     last_name = session['lname']
     status = session.get('code_sent', False)
     conformation_code = session.get('code')
-
+    print(conformation_code)
     if request.method == 'POST' and status == True:
         code = request.form['confirmation']
         if datetime.now().replace(tzinfo=None) > Changed_time:
@@ -312,7 +312,7 @@ def resend():
     return redirect(url_for('elly.signup_confirmation', conformation_code=conformation_code, date=current_time))
 
 
-@elly.route('/Account_created', methods=['GET', 'POST'])
+@elly.route('/Account_created', methods=['GET', 'POST'])  # SSP CODE DONE BY KIN
 def account_created():
     first_name = session.get('fname')
     last_name = session.get('lname')
@@ -386,21 +386,19 @@ def delete_user(email):
 @elly.route('/login', methods=['GET', 'POST'])  # SSP CODES DONE BY ALICIA
 def login():
     msg = ''
+    acct_exist = False
+
     if request.method == "POST" and 'email' in request.form and 'passwd' in request.form:
+        print('work')
         email = request.form['email']
-        session['email'] = email
         passwd = request.form['passwd']
-
-        acct_exist = False
-
         # Check if account is in customers database
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM Customers')
         cust_acct = cursor.fetchall()
         i = 0
-        print(len(cust_acct))
 
-        while i < len(cust_acct):
+        while i < len(cust_acct) and session.get('pre_role') != 'Customer':
             for row in cust_acct:
                 i += 1
                 cust_key = row['symmetrickey']  # symmetrickey
@@ -416,12 +414,9 @@ def login():
                     if bcrypt.checkpw(passwd.encode(), cust_hashAndSalt.encode()):
                         session['loggedin'] = True
                         session['email'] = cust_decryptedEmail.lower()
-                        session['Customer'] = True
-                        session['Staff'] = False
-                        session['HR'] = False
-                        session['deliveryman'] = False
                         session['fname'] = row['fname']
                         session['lname'] = row['lname']
+                        session['pre_role'] = 'Customer'
                         print("Password is correct")
                         acct_exist = True
 
@@ -441,12 +436,10 @@ def login():
             while k < len(staff_acct):
                 for row in staff_acct:
                     k += 1
-                    print(row)
                     staff_key = row['symmetrickey']  # symmetrickey
                     staff_f = Fernet(staff_key)
                     staff_decryptedEmail_Binary = staff_f.decrypt(row['encrypted_email'].encode())  # encrypted_email
                     staff_decryptedEmail = staff_decryptedEmail_Binary.decode()
-                    print(staff_decryptedEmail)
 
                     if email.lower() == staff_decryptedEmail.lower():
                         print("Account exist in database")
@@ -456,30 +449,12 @@ def login():
                         if bcrypt.checkpw(passwd.encode(), staff_hashAndSalt.encode()):
                             session['loggedin'] = True
                             session['email'] = staff_decryptedEmail.lower()
-                            session['fname'] = row['fname']
-                            session['lname'] = row['lname']
                             print("Password is correct")
                             acct_exist = True
 
                             role = row['role']
-                            print(role)
-                            if role == 'Staff':
-                                session['Customer'] = False
-                                session['Staff'] = True
-                                session['HR'] = False
-                                session['deliveryman'] = False
-
-                            elif role == 'HR':
-                                session['Customer'] = False
-                                session['Staff'] = False
-                                session['HR'] = True
-                                session['deliveryman'] = False
-
-                            elif role == 'Deliveryman':
-                                session['Customer'] = False
-                                session['Staff'] = False
-                                session['HR'] = False
-                                session['deliveryman'] = True
+                            session['pre_role'] = role
+                            print('pre role: ', session['pre_role'])
 
                             break
 
@@ -494,16 +469,77 @@ def login():
 
         # Create the authentication code
         elif acct_exist == True:
-            gen_auth_code = randint(000000, 999999)
+            gen_auth_code = randint(100000, 999999)
+            session['gen_auth_code'] = gen_auth_code
 
             # Send authentication code to email
             content = Message('Sheng Siong Supermarket Login', sender='smtp.gmail.com', recipients=[email])
             content.body = "Your login authentication code is %d" % gen_auth_code
             mail.send(content)
 
-            return redirect(url_for('alicia.authenticate', gen_auth_code=gen_auth_code))
+            time_start = datetime.now()
+            duration = timedelta(minutes=3)
+            expire_time = time_start + duration
+            session['expire_time'] = expire_time
 
-    return render_template('login.html', msg='', )
+            return redirect(url_for('alicia.authenticate'))
+
+    return render_template('login.html', msg=msg)
+
+
+@elly.route('/findEmail', methods=['POST', 'GET'])  # SSP CODE DONE BY ELLY
+def findEmail():
+    msg = ''
+    find_email = FindEmail(request.form)
+    if request.method == 'POST' and 'email' in request.form:
+        email = request.form['email']
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM Customers')
+        account = cursor.fetchone()
+
+        if account:
+            key = account['symmetrickey']
+            f = Fernet(key)
+            decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+            decryptedEmail = decryptedEmail_Binary.decode()
+            if decryptedEmail == email:
+                session['email'] = True
+                return redirect(url_for('elly.send_pwemail'))
+    return render_template('findEmail(cust).html', msg='', form=find_email)
+
+
+@elly.route('/send_pwemail', methods=['GET', 'POST'])  # SSP CODE DONE BY ELLY
+def send_pwemail():
+    email = session.get('EMAIL')
+    current_time = datetime.now()
+    session['date'] = current_time
+
+    msg = Message('Hello', sender='smtp.gmail.com', recipients=[email])
+    msg.body = 'Click link to update password' \
+               ' http://127.0.0.1:5000/forgetPassword'
+    mail.send(msg)
+    session['link_sent'] = True
+    session['email'] = True
+    return redirect(url_for('elly.login'))
+
+
+@elly.route('/forgetPassword', methods=['GET', 'POST'])  # SSP CODE DONE BY ELLY
+def forgetPassword():
+    msg = ''
+    fname = session.get('fname')
+    lname = session.get('lname')
+    if 'email' in session:
+        if request.method == 'POST' and 'passwd' in request.form:
+            newpassword = request.form['passwd']
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            salt = bcrypt.gensalt(rounds=16)
+            # A hashed value is created with hashpw() function, which takes the cleartext value and a salt as
+            # parameters.
+            hash_password = bcrypt.hashpw(newpassword.encode(), salt)
+            cursor.execute('UPDATE Customers SET hashed_password = %s WHERE fname = %s and lname = %s', (hash_password, fname, lname))
+            mysql.connection.commit()
+            return redirect(url_for('elly.login'))
+        return render_template('forgetPassword(cust).html', msg='')
 
 
 @elly.route('/logout')
@@ -519,33 +555,24 @@ def logout():
     return redirect(url_for('home'))
 
 
-@elly.route('/profile')
+@elly.route('/profile')  # SSP CODE DONE BY ELLY
 def profile():
-    email = session.get('email')
-    users_dict = {}
-    # db = shelve.open('storage.db', 'r')
-    # users_dict = db['Users']
-    # db.close()
-
     users_list = {}
-    # for key in users_dict:
-    #    user = users_dict.get(key)
-    #    if key == email:
-    #        users_list.append(user)
-
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT * FROM Customers')
-    account = cursor.fetchone()
-    while account is not None:
-        key = account['symmetrickey']
-        f = Fernet(key)
-        decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
-        decryptedEmail = decryptedEmail_Binary.decode()
-        if email == decryptedEmail:
-            users_list[decryptedEmail] = account
+    if 'email' in session:
+        email = session.get('email')
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM Customers')
         account = cursor.fetchone()
-    print(users_list)
-    return render_template('profile(customer).html', count=len(users_list), users_list=users_list)
+        while account is not None:
+            key = account['symmetrickey']
+            f = Fernet(key)
+            decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+            decryptedEmail = decryptedEmail_Binary.decode()
+            if email == decryptedEmail:
+                users_list[decryptedEmail] = account
+            account = cursor.fetchone()
+        return render_template('profile(customer).html', users_list = users_list)
+    return redirect(url_for('login'))
 
 
 @elly.route('/deleteAcc/<email>', methods=['POST'])
@@ -576,6 +603,66 @@ def delete_acc(email):
     mysql.connection.commit()
 
     return redirect(url_for('home'))
+
+
+# ssp
+@elly.route('/pwSecurity', methods=['GET', 'POST'])  # SSP CODE DONE BY ELLY
+def pwSecurity():
+    msg = ''
+    fname = session.get('fname')
+    lname = session.get('lname')
+    pwSecurity = PwSecurity(request.form)
+    if 'email' in session:
+        if request.method == 'POST' and pwSecurity.validate():
+            security_answer = request.form['security_answer']
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('SELECT hashed_security_ans FROM Customers WHERE fname = %s and lname = %s', (fname, lname))
+            account = cursor.fetchone()
+            answer = account['hashed_security_ans']
+            if str(polynomialRollingHash(security_answer)) == str(answer):
+                return redirect(url_for('elly.forgetPassword'))
+    return render_template('updatepwSecurity.html', msg='', form=pwSecurity)
+
+
+@elly.route('/updatePassword', methods=['GET', 'POST'])  # SSP CODE DONE BY ELLY
+def update_password():
+    msg = ''
+    if 'email' in session:
+        email = session.get('email')
+        update_password = UpdatePassword(request.form)
+        if request.method == 'POST' and 'password' in request.form:
+            newpassword = request.form['newpassword']
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('SELECT * FROM Customers')
+            account = cursor.fetchone()
+            while account is not None:
+                key = account['symmetrickey']
+                f = Fernet(key)
+                decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+                decryptedEmail = decryptedEmail_Binary.decode()
+                if email == decryptedEmail:
+                    break
+            fname = account['fname']
+            lname = account['lname']
+            if request.method == 'POST' and UpdatePassword.validate():
+                print('work')
+                # users_dict = {}
+                # db = shelve.open('storage.db', 'w')
+                # users_dict = db['Users']
+
+                # user = users_dict.get(email)
+                # user.set_password(update_password_form.password.data)
+                # db['Users'] = users_dict
+                # db.close()
+                salt = bcrypt.gensalt(rounds=16)
+                # A hashed value is created with hashpw() function, which takes the cleartext value and a salt as
+                # parameters.
+                hash_password = bcrypt.hashpw(newpassword.encode(), salt)
+                cursor.execute('UPDATE Customers SET hashed_password = %s WHERE fname = %s and lname = %s',
+                               (hash_password, fname, lname))
+
+                mysql.connection.commit()
+        return render_template('updatePassword(cust).html', msg='', form=update_password)
 
 
 @elly.route('/updateProfile/<email>/', methods=['GET', 'POST'])
@@ -639,52 +726,6 @@ def update_profile(email):
         update_profile_form.email.data = decryptedEmail
 
         return render_template('updateProfile.html', form=update_profile_form)
-
-
-@elly.route('/updatePassword/<email>/', methods=['GET', 'POST'])
-def update_password(email):
-    update_password_form = UpdatePassword(request.form)
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT * FROM Customers')
-    account = cursor.fetchone()
-    while account is not None:
-        key = account['symmetrickey']
-        f = Fernet(key)
-        decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
-        decryptedEmail = decryptedEmail_Binary.decode()
-        if email == decryptedEmail:
-            break
-    fname = account['fname']
-    lname = account['lname']
-    if request.method == 'POST' and update_password_form.validate():
-        print('work')
-        # users_dict = {}
-        # db = shelve.open('storage.db', 'w')
-        # users_dict = db['Users']
-
-        # user = users_dict.get(email)
-        # user.set_password(update_password_form.password.data)
-        # db['Users'] = users_dict
-        # db.close()
-        salt = bcrypt.gensalt(rounds=16)
-        # A hashed value is created with hashpw() function, which takes the cleartext value and a salt as
-        # parameters.
-        hash_password = bcrypt.hashpw(update_password_form.password.data.encode(), salt)
-        cursor.execute('UPDATE Customers SET hashed_password = %s WHERE fname = %s and lname = %s',
-                       (hash_password, fname, lname))
-
-        mysql.connection.commit()
-
-        return redirect(url_for('elly.profile'))
-    else:
-        # users_dict = {}
-        # db = shelve.open('storage.db', 'r')
-        # users_dict = db['Users']
-        # db.close()
-
-        # user = users_dict.get(email)
-        # update_password_form.password.data = user.get_password()
-        return render_template('updatePassword(cust).html', form=update_password_form)
 
 
 @elly.route('/createLocation', methods=['GET', 'POST'])

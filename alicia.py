@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, B
 
 import User
 from Forms import CreateUserForm, SearchUserForm
+from datetime import datetime
 
 UPLOAD_FOLDER = 'static/img/uploaded'
 ALLOWED_EXTENSIONS = {'png'}
@@ -204,19 +205,62 @@ def temp_chart():
     return render_template('chart.html', locations_label=locations_label, count_data=count_data)
 
 
-@alicia.route("/authenticate/<gen_auth_code>", methods=['GET', 'POST'])  # SSP CODES DONE BY ALICIA
-def authenticate(gen_auth_code):
-    print(gen_auth_code)
-    print(session['HR'])
-    if request.method == "POST":
-        enter_code = request.form['authenticate']
-        if enter_code == gen_auth_code:
-            print("Success")
-            return redirect(url_for('home'))
-        else:
-            msg = "You have entered an invalid authentication code"
+@alicia.route("/authenticate", methods=['GET', 'POST'])  # SSP CODES DONE BY ALICIA
+def authenticate():
+    msg = ''
+    expire_time = session.get('expire_time')
+    print("auth code expire time: ", str(expire_time))
+    msg = 'Your authentication code will expire at %s' % str(expire_time)
 
-    return render_template('authenticate.html', msg='', gen_auth_code=gen_auth_code)
+    gen_auth_code = session.get('gen_auth_code')
+    print("auth code: ", gen_auth_code)
+
+    if request.method == "POST":
+        enter_code = int(request.form['authenticate'])
+        time_click = datetime.now()
+        print('time click auth: ', str(time_click))
+        if time_click.replace(tzinfo=None) > expire_time.replace(tzinfo=None):
+            print("Authentication code expired")
+            msg = 'Your authentication code has expired, please login again'
+            return redirect(url_for('elly.login'))
+
+        else:
+            if enter_code == gen_auth_code:
+                print("Success")
+
+                role = session.get('pre_role')
+                session['role'] = role
+                if role == 'Customer':
+                    session['Customer'] = True
+                    session['Staff'] = False
+                    session['Deliveryman'] = False
+                    session['HR'] = False
+                    print(session.get('HR'))
+                else:
+                    session['Customer'] = False
+                    if role == 'HR':
+                        session['HR'] = True
+                        session['Staff'] = False
+                        session['Deliveryman'] = False
+                    elif role == 'Staff':
+                        session['Deliveryman'] = False
+                        session['HR'] = False
+                        session['Staff'] = True
+                    elif role == 'Deliveryman':
+                        session['HR'] = False
+                        session['Staff'] = False
+                        session['Deliveryman'] = True
+
+                return redirect(url_for('home'))
+
+            else:
+                msg = 'You have entered an invalid authentication code'
+                print("Wrong auth code")
+                return redirect(url_for('elly.login'))
+
+    session.pop('auth_code', None)
+
+    return render_template('authenticate.html', msg=msg)
 
 
 
