@@ -101,8 +101,8 @@
                                     <tbody>
                                     {%for deliveryman in deliveryman_list%}
                                     <tr>
-                                        <td>{{deliveryman.get_first_name()}} {{deliveryman.get_last_name()}}</td>
-                                        <td><a href="assign/East/{{deliveryman.get_Deliverymen_id()}}/{{order.get_id()}}">
+                                        <td>{{deliveryman['fname']}} {{deliveryman['fname']}}</td>
+                                        <td><a href="assign/East/{{deliveryman['fname']}}/{{order.get_id()}}">
                                             <button class="btn btn-primary">select</button>
                                         </a></td>
                                     </tr>

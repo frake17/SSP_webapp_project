@@ -258,6 +258,32 @@ class CreateStaff(Form):
         if not length.isdigit():
             raise ValidationError('Only digits are allowed')
 
+    def validate_password(form, password):
+        password_value = password.data
+        special_characters = False
+        upper_case = False
+        lower_case = False
+        numeric_number = False
+        if len((str(password_value ))) < 8:
+            raise ValidationError('Password should be at least 8 letters/digits long')
+        for i in str(password_value ):
+            if i.isupper():
+                upper_case = True
+            if i.islower():
+                lower_case = True
+            if i.isdigit():
+                numeric_number = True
+            if not i.isalnum():
+                special_characters = True
+        if not upper_case:
+            raise ValidationError('Password must contain at least 1 upper case letter')
+        if not lower_case:
+            raise ValidationError('Password must contain at least 1 lower case letter')
+        if not numeric_number:
+            raise ValidationError('Password must contain at least 1 digit')
+        if not special_characters:
+            raise ValidationError('Password must contain at least 1 special character')
+
 
 class deliverymen_profile_update(Form):
     first_name = StringField('First Name :', [validators.Length(min=1, max=150), validators.DataRequired()])

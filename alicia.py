@@ -202,3 +202,21 @@ def temp_chart():
         count_data.append(count_dict[k])
 
     return render_template('chart.html', locations_label=locations_label, count_data=count_data)
+
+
+@alicia.route("/authenticate/<gen_auth_code>", methods=['GET', 'POST'])  # SSP CODES DONE BY ALICIA
+def authenticate(gen_auth_code):
+    print(gen_auth_code)
+    print(session['HR'])
+    if request.method == "POST":
+        enter_code = request.form['authenticate']
+        if enter_code == gen_auth_code:
+            print("Success")
+            return redirect(url_for('home'))
+        else:
+            msg = "You have entered an invalid authentication code"
+
+    return render_template('authenticate.html', msg='', gen_auth_code=gen_auth_code)
+
+
+

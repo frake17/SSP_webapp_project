@@ -67,15 +67,22 @@ def Dest_West():
 
     order_list = []
     deliverymen_list = []
-    for key in deliverymen_dict:
-        deliverymen = deliverymen_dict.get(key)
-        if deliverymen.get_regions() == 'W':
-            deliverymen_list.append(deliverymen)
+    #for key in deliverymen_dict:
+    #    deliverymen = deliverymen_dict.get(key)
+    #    if deliverymen.get_regions() == 'W':
+    #        deliverymen_list.append(deliverymen)
 
-    for key in order_dict:
-        order_deliver = order_dict.get(key)
-        if order_deliver.get_location() == 'West':
-            order_list.append(order_deliver)
+    #for key in order_dict:
+    #    order_deliver = order_dict.get(key)
+    #    if order_deliver.get_location() == 'West':
+    #        order_list.append(order_deliver)
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("SELECT * FROM Customers WHERE ROLE = 'Deliveryman' ")
+    account = cursor.fetchone()
+    while account is not None:
+        if account['region'] == 'West':
+            deliverymen_list.append(account)
 
     return render_template('Dest_West.html', deliveryman_list=deliverymen_list, order_list=order_list)
 
@@ -94,15 +101,23 @@ def Dest_North():
 
     order_list = []
     deliverymen_list = []
-    for key in deliverymen_dict:
-        deliverymen = deliverymen_dict.get(key)
-        if deliverymen.get_regions() == 'N':
-            deliverymen_list.append(deliverymen)
+    #for key in deliverymen_dict:
+    #    deliverymen = deliverymen_dict.get(key)
+    #    if deliverymen.get_regions() == 'N':
+    #        deliverymen_list.append(deliverymen)
 
-    for key in order_dict:
-        order_deliver = order_dict.get(key)
-        if order_deliver.get_location() == 'North':
-            order_list.append(order_deliver)
+    #for key in order_dict:
+    #    order_deliver = order_dict.get(key)
+    #    if order_deliver.get_location() == 'North':
+    #        order_list.append(order_deliver)
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("SELECT * FROM Customers WHERE ROLE = 'Deliveryman' ")
+    account = cursor.fetchone()
+    while account is not None:
+        if account['region'] == 'North':
+            deliverymen_list.append(account)
+
     return render_template('Dest_North.html', deliveryman_list=deliverymen_list, order_list=order_list)
 
 
@@ -120,15 +135,23 @@ def Dest_South():
 
     order_list = []
     deliverymen_list = []
-    for key in deliverymen_dict:
-        deliverymen = deliverymen_dict.get(key)
-        if deliverymen.get_regions() == 'S':
-            deliverymen_list.append(deliverymen)
+    #for key in deliverymen_dict:
+    #    deliverymen = deliverymen_dict.get(key)
+    #    if deliverymen.get_regions() == 'S':
+    #        deliverymen_list.append(deliverymen)
 
-    for key in order_dict:
-        order_deliver = order_dict.get(key)
-        if order_deliver.get_location() == 'South':
-            order_list.append(order_deliver)
+    #for key in order_dict:
+    #    order_deliver = order_dict.get(key)
+    #    if order_deliver.get_location() == 'South':
+    #        order_list.append(order_deliver)
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("SELECT * FROM Customers WHERE ROLE = 'Deliveryman' ")
+    account = cursor.fetchone()
+    while account is not None:
+        if account['region'] == 'South':
+            deliverymen_list.append(account)
+
     return render_template('Dest_South.html', deliveryman_list=deliverymen_list, order_list=order_list)
 
 
@@ -146,15 +169,22 @@ def Dest_East():
 
     order_list = []
     deliverymen_list = []
-    for key in deliverymen_dict:
-        deliverymen = deliverymen_dict.get(key)
-        if deliverymen.get_regions() == 'E':
-            deliverymen_list.append(deliverymen)
+    #for key in deliverymen_dict:
+    #    deliverymen = deliverymen_dict.get(key)
+    #    if deliverymen.get_regions() == 'E':
+    #        deliverymen_list.append(deliverymen)
 
-    for key in order_dict:
-        order_deliver = order_dict.get(key)
-        if order_deliver.get_location() == 'East':
-            order_list.append(order_deliver)
+    #for key in order_dict:
+    #    order_deliver = order_dict.get(key)
+    #    if order_deliver.get_location() == 'East':
+    #        order_list.append(order_deliver)
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("SELECT * FROM Customers WHERE ROLE = 'Deliveryman' ")
+    account = cursor.fetchone()
+    while account is not None:
+        if account['region'] == 'East':
+            deliverymen_list.append(account)
 
     return render_template('Dest_East.html', deliveryman_list=deliverymen_list, order_list=order_list)
 
@@ -235,36 +265,56 @@ def Create_Deliverymen():
         password = create_Staff_form.password.data
         phone_num = create_Staff_form.contact_no.data
         remarks = create_Staff_form.remarks.data
-
-        # Password Hashing
-        # Create a random number (Salt)
-        salt = bcrypt.gensalt(rounds=16)
-        # A hashed value is created with hashpw() function, which takes the cleartext value and a salt as
-        # parameters.
-        hash_password = bcrypt.hashpw(password.encode(), salt)
-
-        # Symmetric Key Encryption
-        # Generate a random Symmetric key. Keep this key in your database
-        key = Fernet.generate_key()
-        phone_num_key = Fernet.generate_key()
-        # Load the key into the Crypto API
-        f_phone = Fernet(phone_num_key)
-        f = Fernet(key)
-        # Encrypt the email and convert to bytes by calling f.encrypt()
-        encryptedEmail = f.encrypt(email.encode())
-        encrypted_phone = f_phone.encrypt(str(phone_num).encode())
+        status = ""
 
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('INSERT INTO staff VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                       (staffid, first_name, last_name, gender, encryptedEmail, role, outlet, 'NULL', region,
-                        hash_password, encrypted_phone, remarks, key, phone_num_key))
-        mysql.connection.commit()
-        session['fname'] = first_name
-        session['lname'] = last_name
-        session['EMAIL'] = email
+        cursor.execute('SELECT * FROM Staff')
+        account = cursor.fetchone()
+        while account is not None:
+            fname = account['fname']
+            lname = account['lname']
+            key = account['symmetrickey']
+            id = account['StaffID']
+            f = Fernet(key)
+            decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+            decryptedEmail = decryptedEmail_Binary.decode()
+            if (fname == first_name and lname == last_name) or decryptedEmail == email or staffid == id:
+                status = 'User is registered'
+                break
+            account = cursor.fetchone()
+        if status != 'User is registered':
 
-        session['Deliverymen_created'] = deliverymen.get_first_name() + ' ' + deliverymen.get_last_name()
-        return redirect(url_for('qing.Display_Staff'))
+            # Password Hashing
+            # Create a random number (Salt)
+            salt = bcrypt.gensalt(rounds=16)
+            # A hashed value is created with hashpw() function, which takes the cleartext value and a salt as
+            # parameters.
+            hash_password = bcrypt.hashpw(password.encode(), salt)
+
+            # Symmetric Key Encryption
+            # Generate a random Symmetric key. Keep this key in your database
+            key = Fernet.generate_key()
+            phone_num_key = Fernet.generate_key()
+            # Load the key into the Crypto API
+            f_phone = Fernet(phone_num_key)
+            f = Fernet(key)
+            # Encrypt the email and convert to bytes by calling f.encrypt()
+            encryptedEmail = f.encrypt(email.encode())
+            encrypted_phone = f_phone.encrypt(str(phone_num).encode())
+
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('INSERT INTO staff VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                           (staffid, first_name, last_name, gender, encryptedEmail, role, outlet, 'NULL', region,
+                            hash_password, encrypted_phone, remarks, key, phone_num_key))
+            mysql.connection.commit()
+            session['fname'] = first_name
+            session['lname'] = last_name
+            session['staff_email'] = email
+
+            session['Deliverymen_created'] = deliverymen.get_first_name() + ' ' + deliverymen.get_last_name()
+            return redirect(url_for('qing.Display_Staff'))
+        else:
+            session['registered'] = 'Name or email or ID have been registered'
 
     return render_template('Create_Staff.html', form=create_Staff_form)
 
@@ -396,7 +446,8 @@ def Display_Staff(sort, id):
                     decryptedEmail = decryptedEmail_Binary.decode()
                     users_list[decryptedEmail] = account
         else:
-            if account:
+            if account['role'] != 'HR':
+                print(account)
                 # Decrypt Email
                 # Extract the Symmetric-key from Accounts DB
                 key = account['symmetrickey']
@@ -413,6 +464,12 @@ def Display_Staff(sort, id):
                 decryptedPhone = decryptedPhone_Binary.decode()
                 users_list[decryptedEmail] = account
                 users_list.get(decryptedEmail)['phone_num'] = decryptedPhone
+            elif account['role'] == 'HR':
+                key = account['symmetrickey']
+                f = Fernet(key)
+                decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+                decryptedEmail = decryptedEmail_Binary.decode()
+                users_list[decryptedEmail] = account
         account = cursor.fetchone()
     return render_template('Display_Deliverymen.html', count=len(users_list), users_list=users_list,
                            order_list=order_list)

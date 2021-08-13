@@ -17,8 +17,6 @@ from random import randint
 from datetime import datetime, timedelta
 from cryptography.fernet import Fernet
 from twilio.rest import Client
-import random
-import string
 
 elly = Flask(__name__)
 elly.secret_key = 'any_random_string'
@@ -124,6 +122,7 @@ def signup():
                     f = Fernet(phone_key)
                     encrypted_phone_num = f.encrypt(str(optional_form.Phone_number.data).encode())
                     phone_num = encrypted_phone_num
+                    print('1')
                 else:
                     phone_num = 'NULL'
                     phone_key = 'NULL'
@@ -134,6 +133,7 @@ def signup():
                     f = Fernet(Card_num_key)
                     encrypted_card_num = f.encrypt(str(optional_form.card_number.data).encode())
                     card_num = encrypted_card_num
+                    print('2')
                 else:
                     card_num = 'NULL'
                     Card_num_key = 'NULL'
@@ -144,6 +144,7 @@ def signup():
                     f = Fernet(Card_exp_key)
                     encrypted_card_exp = f.encrypt(str(optional_form.card_number.data).encode())
                     exp_date = encrypted_card_exp
+                    print('3')
                 else:
                     exp_date = 'NULL'
                     Card_exp_key = 'NULL'
@@ -159,42 +160,63 @@ def signup():
                     Card_cvv_key = 'NULL'
 
                 # conformation_code = randint(000000, 999999)
+                print('4')
                 first_name = signup_form.first_name.data
                 last_name = signup_form.last_name.data
                 email = signup_form.email.data
                 password = signup_form.password.data
                 security_qn = signup_form.security_question.data
                 security_ans = signup_form.security_answer.data
-                # Password Hashing
-                # Create a random number (Salt)
-                salt = bcrypt.gensalt(rounds=16)
-                # A hashed value is created with hashpw() function, which takes the cleartext value and a salt as
-                # parameters.
-                hash_password = bcrypt.hashpw(password.encode(), salt)
-                hash_security_ans = polynomialRollingHash(security_ans)
-
-                # Symmetric Key Encryption
-                # Generate a random Symmetric key. Keep this key in your database
-                key = Fernet.generate_key()
-                # Load the key into the Crypto API
-                f = Fernet(key)
-                # Encrypt the email and convert to bytes by calling f.encrypt()
-                encryptedEmail = f.encrypt(email.encode())
+                status = ''
 
                 cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-                cursor.execute(
-                    'INSERT INTO customers_temp VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                    (first_name, last_name, encryptedEmail, hash_password, phone_num, card_num, exp_date, CVV,
-                     security_qn, hash_security_ans, key, phone_key, Card_num_key, Card_exp_key, Card_cvv_key))
-                mysql.connection.commit()
-                session['fname'] = first_name
-                session['lname'] = last_name
-                session['EMAIL'] = email
-                # session['code'] = conformation_code
-                session['code_sent'] = False
-                session['Phone Number'] = optional_form.Phone_number.data
+                cursor.execute('SELECT * FROM Customers')
+                account = cursor.fetchone()
+                # while account is not None:  # RE-ENABLE ONCE DONE TESTING
+                #    fname = account['fname']
+                #    lname = account['lname']
+                #    key = account['symmetrickey']
+                #    f = Fernet(key)
+                #    decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+                #    decryptedEmail = decryptedEmail_Binary.decode()
+                #    if (fname == first_name and lname == last_name) or decryptedEmail == email:
+                #        status = 'User is registered'
+                #        break
+                #    account = cursor.fetchone()
+                if status != 'User is registered':
+                    print('done')
+                    # Password Hashing
+                    # Create a random number (Salt)
+                    salt = bcrypt.gensalt(rounds=16)
+                    # A hashed value is created with hashpw() function, which takes the cleartext value and a salt as
+                    # parameters.
+                    hash_password = bcrypt.hashpw(password.encode(), salt)
+                    hash_security_ans = polynomialRollingHash(security_ans)
 
-                return redirect(url_for('elly.signup_confirmation'))
+                    # Symmetric Key Encryption
+                    # Generate a random Symmetric key. Keep this key in your database
+                    key = Fernet.generate_key()
+                    # Load the key into the Crypto API
+                    f = Fernet(key)
+                    # Encrypt the email and convert to bytes by calling f.encrypt()
+                    encryptedEmail = f.encrypt(email.encode())
+
+                    # cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                    cursor.execute(
+                        'INSERT INTO customers_temp VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                        (first_name, last_name, encryptedEmail, hash_password, phone_num, card_num, exp_date, CVV,
+                         security_qn, hash_security_ans, key, phone_key, Card_num_key, Card_exp_key, Card_cvv_key))
+                    mysql.connection.commit()
+                    session['fname'] = first_name
+                    session['lname'] = last_name
+                    session['email'] = email
+                    # session['code'] = conformation_code
+                    session['code_sent'] = False
+                    session['Phone Number'] = optional_form.Phone_number.data
+
+                    return redirect(url_for('elly.signup_confirmation'))
+                else:
+                    session['registered'] = 'Name or email have been registered'
 
     return render_template('signup(customer).html', form=signup_form, optional_form=optional_form,
                            recap=recaptcha_forms)
@@ -202,9 +224,9 @@ def signup():
 
 @elly.route('/send_email', methods=['GET', 'POST'])  # SSP CODE
 def send_email():
-    email = session.get('EMAIL')
-    conformation_code = ''.join([random.choice(string.ascii_letters + string.digits + string.punctuation ) for n in range(12)])
-    current_time = datetime.now()
+    email = session.get('email')
+    conformation_code = randint(000000, 999999)
+    current_time = datetime.now().replace(tzinfo=None)
     session['code'] = conformation_code
     session['date'] = current_time
 
@@ -221,8 +243,8 @@ def send_sms():
     auth_token = '40520b503bb15b03ab4e71093eb084b3'
     client = Client(account_sid, auth_token)
     phone_num = str(session.get('Phone Number'))
-    conformation_code = ''.join([random.choice(string.ascii_letters + string.digits + string.punctuation ) for n in range(12)])
-    current_time = datetime.now()
+    conformation_code = randint(000000, 999999)
+    current_time = datetime.now().replace(tzinfo=None)
     session['code'] = conformation_code
     session['date'] = current_time
 
@@ -240,9 +262,10 @@ def send_sms():
 
 @elly.route('/signup_confirmation', methods=['GET', 'POST'])  # SSP CODE
 def signup_confirmation():
-    time_change = timedelta(minutes=15)
+    time_change = timedelta(minutes=5)
     date = session.get('date')
     Changed_time = date + time_change
+    Changed_time = Changed_time.replace(tzinfo=None)
     first_name = session['fname']
     last_name = session['lname']
     status = session.get('code_sent', False)
@@ -250,7 +273,15 @@ def signup_confirmation():
 
     if request.method == 'POST' and status == True:
         code = request.form['confirmation']
-        if int(code) == int(conformation_code):
+        if datetime.now().replace(tzinfo=None) > Changed_time:
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute('DELETE FROM customers_temp WHERE fname = %s and lname = %s', (first_name, last_name))
+            mysql.connection.commit()
+            session['code'] = ''
+            session['code_sent'] = False
+            session['Code expire'] = 'Authentication code is expired, please sign up again'
+            return redirect(url_for('elly.signup'))
+        elif int(code) == int(conformation_code):
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute('INSERT INTO customers SELECT * FROM customers_temp WHERE fname = %s and lname = %s'
                            , (first_name, last_name))
@@ -263,14 +294,6 @@ def signup_confirmation():
             session['code'] = ''
             session['code_sent'] = False
             return redirect(url_for('elly.account_created'))
-        elif datetime.now() < Changed_time:
-            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            cursor.execute('DELETE FROM customers_temp WHERE fname = %s and lname = %s', (first_name, last_name))
-            mysql.connection.commit()
-            session['code'] = ''
-            session['code_sent'] = False
-            session['Code expire'] = 'Authentication code is expired, please sign up again'
-            return redirect(url_for('elly.signup'))
         else:
             session['Wrong Code'] = 'You have inputted the wrong code'
             return redirect(url_for('elly.signup_confirmation'))
@@ -280,7 +303,7 @@ def signup_confirmation():
 @elly.route('/resend', methods=['POST', 'GET'])
 def resend():
     current_time = datetime.now()
-    email = session.get('EMAIL')
+    email = session.get('email')
     conformation_code = randint(000000, 999999)
     msg = Message('Hello', sender='smtp.gmail.com', recipients=[email])
     msg.body = "Conformation code is: %d" % conformation_code
@@ -300,96 +323,197 @@ def account_created():
 
 @elly.route('/retrieveUsers')
 def retrieve_users():
-    users_dict = {}
-    db = shelve.open('storage.db', 'r')
-    try:
-        users_dict = db['Users']
-    except:
-        print('no users')
-    db.close()
+    # users_dict = {}
+    # db = shelve.open('storage.db', 'r')
+    # try:
+    #    users_dict = db['Users']
+    # except:
+    #    print('no users')
+    # db.close()
 
-    users_list = []
-    for key in users_dict:
-        user = users_dict.get(key)
-        users_list.append(user)
-
+    users_list = {}
+    # for key in users_dict:
+    #    user = users_dict.get(key)
+    #    users_list.append(user)
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT * FROM Customers')
+    account = cursor.fetchone()
+    while account is not None:
+        key = account['symmetrickey']
+        # Load the key
+        f = Fernet(key)
+        # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
+        # using.encode()
+        decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+        decryptedEmail = decryptedEmail_Binary.decode()
+        users_list[decryptedEmail] = account
+        account = cursor.fetchone()
     return render_template('retrieveUsers(admin).html', count=len(users_list), users_list=users_list)
 
 
 @elly.route('/deleteUser/<email>', methods=['POST'])
 def delete_user(email):
-    users_dict = {}
-    db = shelve.open('storage.db', 'w')
-    users_dict = db['Users']
+    # users_dict = {}
+    # db = shelve.open('storage.db', 'w')
+    # users_dict = db['Users']
 
-    users_dict.pop(email)
+    # users_dict.pop(email)
 
-    db['Users'] = users_dict
-    db.close()
+    # db['Users'] = users_dict
+    # db.close()
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT * FROM Customers')
+    account = cursor.fetchone()
+    while account is not None:
+        key = account['symmetrickey']
+        encrypted_email = account['encrypted_email']
+        # Load the key
+        f = Fernet(key)
+        # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
+        # using.encode()
+        decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+        decryptedEmail = decryptedEmail_Binary.decode()
+        if email == decryptedEmail:
+            fname = account['fname']
+            lname = account['lname']
+            cursor.execute('DELETE FROM Customers WHERE fname = %s and lname = %s', (fname, lname))
+        account = cursor.fetchone()
+    mysql.connection.commit()
 
     return redirect(url_for('elly.retrieve_users'))
 
 
-@elly.route('/login', methods=['GET', 'POST'])
+@elly.route('/login', methods=['GET', 'POST'])  # SSP CODES DONE BY ALICIA
 def login():
-    login_form = Login(request.form)
-    if request.method == 'POST' and login_form.validate():
-        session['current'] = login_form.email.data
-        if login_form.email.data == "ss_staff@gmail.com":
-            if login_form.password.data == "Admin123":
-                session['admin'] = True
-                session['customer'] = False
-                session['deliveryman'] = False
-                return redirect(url_for('home'))
-            else:
-                session['customer'] = False
-                session['admin'] = False
-                session['deliveryman'] = False
-        else:
-            users_dict = {}
-            deliveryman_login = {}
-            db = shelve.open('storage.db', 'r')
-            try:
-                users_dict = db['Users']
-            except:
-                return redirect(url_for('elly.signup'))
-            try:
-                deliveryman_login = db["Deliverymen_login"]
-            except:
-                print('no deliveryman')
-            db.close()
+    msg = ''
+    if request.method == "POST" and 'email' in request.form and 'passwd' in request.form:
+        email = request.form['email']
+        session['email'] = email
+        passwd = request.form['passwd']
 
-            users_list = []
-            for key in deliveryman_login:
-                if login_form.email.data == key:
-                    print('dsa')
-                    if login_form.password.data == 'Deliverymen123':
-                        session['customer'] = False
-                        session['admin'] = False
-                        session['deliveryman'] = True
-                        return redirect(url_for('home'))
-            for key in users_dict:
-                user = users_dict.get(key)
-                if key == login_form.email.data:
-                    if login_form.password.data == user.get_password():
-                        users_list.append(user)
-                        session['customer'] = True
-                        session['admin'] = False
+        acct_exist = False
+
+        # Check if account is in customers database
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM Customers')
+        cust_acct = cursor.fetchall()
+        i = 0
+        print(len(cust_acct))
+
+        while i < len(cust_acct):
+            for row in cust_acct:
+                i += 1
+                cust_key = row['symmetrickey']  # symmetrickey
+                cust_f = Fernet(cust_key)
+                cust_decryptedEmail_Binary = cust_f.decrypt(row['encrypted_email'].encode())  # encrypted_email
+                cust_decryptedEmail = cust_decryptedEmail_Binary.decode()
+
+                if email.lower() == cust_decryptedEmail.lower():
+                    print("Account exist in database")
+
+                    # Check if password is correct
+                    cust_hashAndSalt = row['hashed_password']  # hashed_password
+                    if bcrypt.checkpw(passwd.encode(), cust_hashAndSalt.encode()):
+                        session['loggedin'] = True
+                        session['email'] = cust_decryptedEmail.lower()
+                        session['Customer'] = True
+                        session['Staff'] = False
+                        session['HR'] = False
                         session['deliveryman'] = False
-                        return redirect(url_for('elly.profile'))
-            if login_form.email.data not in users_dict:
-                return redirect(url_for('elly.signup'))
+                        session['fname'] = row['fname']
+                        session['lname'] = row['lname']
+                        print("Password is correct")
+                        acct_exist = True
 
-    return render_template('login.html', form=login_form)  # change to login.html
+                        break
+
+                    else:
+                        msg = 'Wrong email / password entered'
+                        print("Wrong password")
+                        break
+
+        # Check if account is in staff database
+        else:
+            cursor.execute('SELECT * FROM staff')
+            staff_acct = cursor.fetchall()
+            k = 0
+
+            while k < len(staff_acct):
+                for row in staff_acct:
+                    k += 1
+                    print(row)
+                    staff_key = row['symmetrickey']  # symmetrickey
+                    staff_f = Fernet(staff_key)
+                    staff_decryptedEmail_Binary = staff_f.decrypt(row['encrypted_email'].encode())  # encrypted_email
+                    staff_decryptedEmail = staff_decryptedEmail_Binary.decode()
+                    print(staff_decryptedEmail)
+
+                    if email.lower() == staff_decryptedEmail.lower():
+                        print("Account exist in database")
+
+                        # Check if password is correct
+                        staff_hashAndSalt = row['hashed_password']  # hashed_password
+                        if bcrypt.checkpw(passwd.encode(), staff_hashAndSalt.encode()):
+                            session['loggedin'] = True
+                            session['email'] = staff_decryptedEmail.lower()
+                            session['fname'] = row['fname']
+                            session['lname'] = row['lname']
+                            print("Password is correct")
+                            acct_exist = True
+
+                            role = row['role']
+                            print(role)
+                            if role == 'Staff':
+                                session['Customer'] = False
+                                session['Staff'] = True
+                                session['HR'] = False
+                                session['deliveryman'] = False
+
+                            elif role == 'HR':
+                                session['Customer'] = False
+                                session['Staff'] = False
+                                session['HR'] = True
+                                session['deliveryman'] = False
+
+                            elif role == 'Deliveryman':
+                                session['Customer'] = False
+                                session['Staff'] = False
+                                session['HR'] = False
+                                session['deliveryman'] = True
+
+                            break
+
+                        else:
+                            msg = 'Wrong email / password entered'
+                            print("Wrong password")
+                            break
+
+        if acct_exist == False:
+            msg = 'Wrong email / password entered'
+            print("Account does not exist in database")
+
+        # Create the authentication code
+        elif acct_exist == True:
+            gen_auth_code = randint(000000, 999999)
+
+            # Send authentication code to email
+            content = Message('Sheng Siong Supermarket Login', sender='smtp.gmail.com', recipients=[email])
+            content.body = "Your login authentication code is %d" % gen_auth_code
+            mail.send(content)
+
+            return redirect(url_for('alicia.authenticate', gen_auth_code=gen_auth_code))
+
+    return render_template('login.html', msg='', )
 
 
 @elly.route('/logout')
 def logout():
     try:
-        session.pop('current', None)
-        session.pop('admin', None)
-        session.pop('customer', None)
-        session.pop('deliverman', None)
+        session.pop('email', None)
+        session.pop('Staff', None)
+        session.pop('Customer', None)
+        session.pop('Deliveryman', None)
+        session.pop('HR', None)
     except:
         flash('User is not logged in')
     return redirect(url_for('home'))
@@ -397,91 +521,169 @@ def logout():
 
 @elly.route('/profile')
 def profile():
-    email = session.get('current', 'c')
+    email = session.get('email')
     users_dict = {}
-    db = shelve.open('storage.db', 'r')
-    users_dict = db['Users']
-    db.close()
+    # db = shelve.open('storage.db', 'r')
+    # users_dict = db['Users']
+    # db.close()
 
-    users_list = []
-    for key in users_dict:
-        user = users_dict.get(key)
-        if key == email:
-            users_list.append(user)
+    users_list = {}
+    # for key in users_dict:
+    #    user = users_dict.get(key)
+    #    if key == email:
+    #        users_list.append(user)
 
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT * FROM Customers')
+    account = cursor.fetchone()
+    while account is not None:
+        key = account['symmetrickey']
+        f = Fernet(key)
+        decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+        decryptedEmail = decryptedEmail_Binary.decode()
+        if email == decryptedEmail:
+            users_list[decryptedEmail] = account
+        account = cursor.fetchone()
+    print(users_list)
     return render_template('profile(customer).html', count=len(users_list), users_list=users_list)
 
 
 @elly.route('/deleteAcc/<email>', methods=['POST'])
 def delete_acc(email):
-    users_dict = {}
-    db = shelve.open('storage.db', 'w')
-    users_dict = db['Users']
-
-    users_dict.pop(email)
-
-    db['Users'] = users_dict
-    db.close()
-
     try:
-        session.pop('current', None)
+        session.pop('email', None)
         session.pop('customer', None)
     except:
         flash('User is not logged in')
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT * FROM Customers')
+    account = cursor.fetchone()
+    while account is not None:
+        key = account['symmetrickey']
+        encrypted_email = account['encrypted_email']
+        # Load the key
+        f = Fernet(key)
+        # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
+        # using.encode()
+        decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+        decryptedEmail = decryptedEmail_Binary.decode()
+        if email == decryptedEmail:
+            fname = account['fname']
+            lname = account['lname']
+            cursor.execute('DELETE FROM Customers WHERE fname = %s and lname = %s', (fname, lname))
+        account = cursor.fetchone()
+    mysql.connection.commit()
+
     return redirect(url_for('home'))
 
 
 @elly.route('/updateProfile/<email>/', methods=['GET', 'POST'])
 def update_profile(email):
     update_profile_form = UpdateProfile(request.form)
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT * FROM Customers')
+    account = cursor.fetchone()
+    while account is not None:
+        key = account['symmetrickey']
+        # Load the key
+        f = Fernet(key)
+        # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
+        # using.encode()
+        decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+        # call .decode () to convert from Binary to String – to be displayed in Home.html.
+        decryptedEmail = decryptedEmail_Binary.decode()
+        if decryptedEmail == email:
+            break
+        else:
+            account = cursor.fetchone()
     if request.method == 'POST' and update_profile_form.validate():
-        users_dict = {}
-        db = shelve.open('storage.db', 'w')
-        users_dict = db['Users']
+        # users_dict = {}
+        # db = shelve.open('storage.db', 'w')
+        # users_dict = db['Users']
 
-        user = users_dict.get(email)
-        user.set_first_name(update_profile_form.first_name.data)
-        user.set_last_name(update_profile_form.last_name.data)
-        user.set_email(update_profile_form.email.data)
-        db['Users'] = users_dict
-        db.close()
+        fname = account['fname']
+        lname = account['lname']
+        id = account['id']
+
+        # user = users_dict.get(email)
+        # user.set_first_name(update_profile_form.first_name.data)
+        # user.set_last_name(update_profile_form.last_name.data)
+        # user.set_email(update_profile_form.email.data)
+        # db['Users'] = users_dict
+        # db.close()
+
+        key = Fernet.generate_key()
+        f = Fernet(key)
+        encryptedEmail = f.encrypt(update_profile_form.email.data.encode())
+
+        cursor.execute('UPDATE Customers SET fname = %s, lname = %s, encrypted_email = %s, symmetrickey = %s WHERE id = %s',
+                       (update_profile_form.first_name.data, update_profile_form.last_name.data, encryptedEmail, key, str(id)))
+
+        mysql.connection.commit()
 
         return redirect(url_for('elly.profile'))
     else:
-        users_dict = {}
-        db = shelve.open('storage.db', 'r')
-        users_dict = db['Users']
-        db.close()
 
-        user = users_dict.get(email)
-        update_profile_form.first_name.data = user.get_first_name()
-        update_profile_form.last_name.data = user.get_last_name()
-        update_profile_form.email.data = user.get_email()
+        key = account['symmetrickey']
+        # Load the key
+        f = Fernet(key)
+        # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
+        # using.encode()
+        decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+        # call .decode () to convert from Binary to String – to be displayed in Home.html.
+        decryptedEmail = decryptedEmail_Binary.decode()
+
+        update_profile_form.first_name.data = account['fname']
+        update_profile_form.last_name.data = account['lname']
+        update_profile_form.email.data = decryptedEmail
+
         return render_template('updateProfile.html', form=update_profile_form)
 
 
 @elly.route('/updatePassword/<email>/', methods=['GET', 'POST'])
 def update_password(email):
     update_password_form = UpdatePassword(request.form)
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT * FROM Customers')
+    account = cursor.fetchone()
+    while account is not None:
+        key = account['symmetrickey']
+        f = Fernet(key)
+        decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+        decryptedEmail = decryptedEmail_Binary.decode()
+        if email == decryptedEmail:
+            break
+    fname = account['fname']
+    lname = account['lname']
     if request.method == 'POST' and update_password_form.validate():
-        users_dict = {}
-        db = shelve.open('storage.db', 'w')
-        users_dict = db['Users']
+        print('work')
+        # users_dict = {}
+        # db = shelve.open('storage.db', 'w')
+        # users_dict = db['Users']
 
-        user = users_dict.get(email)
-        user.set_password(update_password_form.password.data)
-        db['Users'] = users_dict
-        db.close()
+        # user = users_dict.get(email)
+        # user.set_password(update_password_form.password.data)
+        # db['Users'] = users_dict
+        # db.close()
+        salt = bcrypt.gensalt(rounds=16)
+        # A hashed value is created with hashpw() function, which takes the cleartext value and a salt as
+        # parameters.
+        hash_password = bcrypt.hashpw(update_password_form.password.data.encode(), salt)
+        cursor.execute('UPDATE Customers SET hashed_password = %s WHERE fname = %s and lname = %s',
+                       (hash_password, fname, lname))
+
+        mysql.connection.commit()
 
         return redirect(url_for('elly.profile'))
     else:
-        users_dict = {}
-        db = shelve.open('storage.db', 'r')
-        users_dict = db['Users']
-        db.close()
+        # users_dict = {}
+        # db = shelve.open('storage.db', 'r')
+        # users_dict = db['Users']
+        # db.close()
 
-        user = users_dict.get(email)
-        update_password_form.password.data = user.get_password()
+        # user = users_dict.get(email)
+        # update_password_form.password.data = user.get_password()
         return render_template('updatePassword(cust).html', form=update_password_form)
 
 

@@ -19,7 +19,7 @@ p {
 </style>
 
 {% extends "base.html" %}
-{% block title %}Library Loan System - Profile{% endblock %}
+{% block title %}Profile{% endblock %}
 
 {% block content %}
 {% if 'user_deleted' in session %}
@@ -33,25 +33,25 @@ p {
 <table>
     {% for user in users_list %}
     <tr>
-        <td><a class="btn btn-warning" href="/updateProfile/{{user.get_email()}}">Update Profile</a></td>
+        <td><a class="btn btn-warning" href="/updateProfile/{{user}}">Update Profile</a></td>
         <td>First Name:</td>
-        <td><p>{{ account['first_name'] }} </p></td>
+        <td><p>{{ users_list.get(user)['fname'] }} </p></td>
     </tr>
     <tr>
-        <td><a class="btn btn-warning" href="/updatePassword/{{user.get_email()}}">Update Password</a></td>
+        <td><a class="btn btn-warning" href="/updatePassword/{{user}}">Update Password</a></td>
         <td>Last Name:</td>
-        <td><p>{{ account['last_name'] }}</p></td>
+        <td><p>{{ users_list.get(user)['lname'] }}</p></td>
     </tr>
     <tr>
         <td>
-            <form action="{{url_for('elly.delete_acc', email=user.get_email())}}" method="POST">
-                <button class="btn btn-danger" data-target="#myModal_{{user.get_user_id()}}" data-toggle="modal"
+            <form action="{{ url_for('elly.delete_acc', email = user ) }}" method="POST"> <!-- add action -->
+                <button class="btn btn-danger" data-target="#myModal_user" data-toggle="modal"
                         type="button">
                     Delete Account
                 </button>
 
                 <!-- The Modal -->
-                <div class="modal" id="myModal_{{user.get_user_id()}}">
+                <div class="modal" id="myModal_user">
                     <div class="modal-dialog">
                         <div class="modal-content">
 
@@ -79,7 +79,7 @@ p {
             </form>
         </td>
         <td>Email:</td>
-        <td><p>{{ account['email'] }}</p></td>
+        <td><p>{{ user }}</p></td>
     </tr>
     <tr>
         <td><a class="btn btn-warning" href="/loginActivity(cust)">Login Activity</a></td>

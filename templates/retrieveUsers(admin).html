@@ -18,6 +18,7 @@
     {% else %}
     <p>There are {{ count }} users.</p>
     {% endif %}
+    <!--
     <ul style="float:right; padding-right:116px;" class="navbar-nav ml-auto mr-1"><li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="user">
                 Sort by
@@ -31,6 +32,7 @@
 
             </div>
         </li></ul>
+        -->
 </div>
 
 <div>
@@ -40,7 +42,6 @@
             <th>First Name</th>
             <th>Last Name</th>
             <th>Email</th>
-            <th>Last login</th>
             <th></th>
             <th></th>
 
@@ -50,23 +51,22 @@
         {% for user in users_list %}
 
         <tr>
-            <td>{{ user.get_first_name() }}</td>
-            <td>{{ user.get_last_name() }}</td>
-            <td>{{ user.get_email() }}</td>
-            <td>26 May 2021</td>
-            <td><button class="btn btn-warning" data-toggle="modal"
+            <td>{{ users_list.get(user)['fname'] }}</td>
+            <td>{{ users_list.get(user)['lname'] }}</td>
+            <td>{{ user }}</td>
+            <td><button class="btn btn-warning"
                             type="button">
                         Disable
                     </button></td>
             <td>
-                <form action="{{url_for('elly.delete_user', email=user.get_email())}}" method="POST">
-                    <button class="btn btn-danger" data-target="#myModal_{{user.get_user_id()}}" data-toggle="modal"
+                <form action="{{url_for('elly.delete_user', email=user)}}" method="POST">
+                    <button class="btn btn-danger" data-target="#myModal_{{ users_list.get(user)['fname'] }}" data-toggle="modal"
                             type="button">
                         Delete
                     </button>
 
                     <!-- The Modal -->
-                    <div class="modal" id="myModal_{{user.get_user_id()}}">
+                    <div class="modal" id="myModal_{{ users_list.get(user)['fname'] }}">
                         <div class="modal-dialog">
                             <div class="modal-content">
 
@@ -78,7 +78,7 @@
 
                                 <!-- Modal body -->
                                 <div class="modal-body">
-                                    Are you sure you want to delete {{user.get_first_name()}} {{user.get_last_name()}}?
+                                    Are you sure you want to delete {{users_list.get(user)['fname']}} {{users_list.get(user)['lname']}}?
                                 </div>
 
                                 <!-- Modal footer -->

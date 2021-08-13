@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Library Loan System - Update Profile{% endblock %}
+{% block title %}Update Profile{% endblock %}
 
 {% block content %}
 {% from "includes/_formHelper.html" import render_field %}
 
 <h1 class="display-4">Update Profile</h1>
-
 <form action="" method="POST">
+    {{ form.csrf_token() }}
     <div class="form-group">
         {{ render_field(form.first_name, class="form-control") }}
     </div>

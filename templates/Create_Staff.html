@@ -4,7 +4,13 @@
 {% block content %}
 {% from "includes/_formHelper.html" import render_field %}
 
-<h1 class="display-4">Create Deliverymen</h1>
+{% if 'registered' in session %}
+<div class="alert alert-danger alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('registered', None) }}
+</div>
+{% endif %}
+<h1 class="display-4">Create Staff</h1>
 
 <form action="" method="POST">
     {{ form.hidden_tag() }}

@@ -595,7 +595,7 @@ def delete_order(delivery_collect, id):
 
 @kin.route('/sent_order/<delivery_collect>/<int:id>')
 def sent_order(delivery_collect, id):
-    email = session.get('current')
+    email = session.get('email')
     db = shelve.open('storage.db', 'c')
     email_cart_dict = db['Cart']
     item_dict = db['item']
