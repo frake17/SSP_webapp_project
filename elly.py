@@ -433,7 +433,7 @@ def login():
             staff_acct = cursor.fetchall()
             k = 0
 
-            while k < len(staff_acct):
+            while k < len(staff_acct) and session.get('pre_role') != 'Customer':
                 for row in staff_acct:
                     k += 1
                     staff_key = row['symmetrickey']  # symmetrickey
