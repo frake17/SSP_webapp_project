@@ -9,6 +9,7 @@ from Forms import Item, Order, self_collect, Supplier, self_collection_update
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 from cryptography.fernet import Fernet
+from url_jumping import check_role
 
 UPLOAD_FOLDER = '/static/img/uploaded'
 ALLOWED_EXTENSIONS = {'png'}
@@ -37,6 +38,8 @@ def allowed_file(filename):
 @kin.route('/stock', defaults={'sort': None}, methods=['GET', 'POST'])
 @kin.route('/stock/<sort>', methods=['GET', 'POST'])
 def stock(sort):
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     item_dict = {}
     low_on_stock = []
     percentage = 20
@@ -73,6 +76,8 @@ def stock(sort):
 @kin.route('/shop_admin', defaults={'sort': None})
 @kin.route('/shop_admin/<sort>')
 def shop(sort):
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     items_dict = {}
     try:
         db = shelve.open('storage.db', 'r')
@@ -101,6 +106,8 @@ def shop(sort):
 @kin.route('/shop_cus', defaults={'sort': None})
 @kin.route('/shop_cus/<sort>')
 def shop_cus(sort):
+    if not check_role('Customer'):
+        return redirect(url_for('home'))
     items_dict = {}
     try:
         db = shelve.open('storage.db', 'r')
@@ -142,7 +149,7 @@ def add_to_cart(product_id):
     email_cart_dict = {}
     db = shelve.open('storage.db', 'c')
     try:
-        email = session.get('current')
+        email = session.get('email')
     except:
         print('no email in session')
         return url_for('login')
@@ -195,7 +202,7 @@ def add_cart_item(product_id):
     email_cart_dict = {}
     item_dict = {}
     db = shelve.open('storage.db', 'c')
-    email = session.get('current')
+    email = session.get('email')
 
     try:
         email_cart_dict = db['Cart']
@@ -224,7 +231,7 @@ def minus_cart_item(product_id):
     cart_dict = {}
     email_cart_dict = {}
     db = shelve.open('storage.db', 'c')
-    email = session.get('current')
+    email = session.get('email')
 
     try:
         email_cart_dict = db['Cart']
@@ -255,7 +262,7 @@ def cart():
     item_list = []
     total = 0
     try:
-        email = session.get('current')
+        email = session.get('email')
         email_cart_dict = db['Cart']
         cart_list = email_cart_dict.get(email)
         for key in cart_list:
@@ -274,7 +281,7 @@ def cart():
 
 @kin.route('/clear_cart')
 def clear_cart():
-    email = session.get('current')
+    email = session.get('email')
     db = shelve.open('storage.db', 'c')
     try:
         email_cart_dict = db['Cart']
@@ -352,6 +359,8 @@ def collect_date_location():
 
 @kin.route('/order', methods=['GET', 'POST']) # To test
 def delivery_order_details():
+    if not check_role('Customer'):
+        return redirect(url_for('home'))
     count = 1
     date = session.get('date', None)
     create_order = Order(request.form)
@@ -413,6 +422,8 @@ def delivery_order_details():
 
 @kin.route('/order_self', methods=['POST', 'GET']) # To Test
 def self_collect_order_details():
+    if not check_role('Customer'):
+        return redirect(url_for('home'))
     count = 1
     create_order_self = self_collect(request.form)
     date = session.get('date', None)
@@ -484,10 +495,10 @@ def self_collect_order_details():
 
 @kin.route('/summary')
 def delivery_summary():
-    email = session.get('current')
+    if not check_role('Customer'):
+        return redirect(url_for('home'))
+    email = session.get('email')
     total = session.get('Total_price')
-    order_list = {}  # store order
-    item_dict = {}  # get dict of stocks
     item_list = []  # for displaying in html
 
     db = shelve.open('storage.db', 'c')
@@ -499,13 +510,6 @@ def delivery_summary():
     for key in order_list:  # for displaying in html
         user = order_list.get(key)
         item_list.append(user)
-
-    # for key in cart_dict:
-    #   item = cart_dict.get(key)
-    #  for i in range(item.get_amount()):
-    #     item.decrease_stock()
-    # item.set_amount_empty()
-    # item_dict[item.get_id()] = item
 
     current_id = session.get('current_id_delivery')
     current = order_list.get(current_id)
@@ -519,10 +523,10 @@ def delivery_summary():
 
 @kin.route('/summary_self')
 def self_collect_summary():
-    email = session.get('current')
+    if not check_role('Customer'):
+        return redirect(url_for('home'))
+    email = session.get('email')
     total = session.get('Total_price')
-    order_list = {}  # store order
-    item_dict = {}  # get dict of stocks
     item_list = []  # for displaying in html (delete once intergrate with qing)
 
     db = shelve.open('storage.db', 'c')
@@ -534,13 +538,6 @@ def self_collect_summary():
     for key in order_list:  # for displaying in html (delete once intergrate with qing)
         user = order_list.get(key)
         item_list.append(user)
-
-    # for key in cart_dict:
-    # item = cart_dict.get(key)
-    # for i in range(item.get_amount()):
-    #    item.decrease_stock()
-    # item.set_amount_empty()
-    # item_dict[item.get_id()] = item
 
     current_id = session.get('current_id_self', None)
     current = order_list.get(current_id)
@@ -725,6 +722,8 @@ def edit_collect_order(id):
 
 @kin.route('/create_item/<shop_or_stock>', methods=['GET', 'POST'])
 def create_item(shop_or_stock):
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     count = 1
     create_item_form = Item(request.form)
     print(create_item_form.errors)
@@ -777,6 +776,8 @@ def create_item(shop_or_stock):
 
 @kin.route('/update/<int:id>', methods=['GET', 'POST'])
 def update_item(id):
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     update_item_form = Item(request.form)
     if request.method == 'POST' and update_item_form.validate():
         item_dict = {}
@@ -832,6 +833,8 @@ def update_item(id):
 
 @kin.route('/delete_stock/<int:id>', methods=['GET', 'POST'])
 def delete_stock(id):
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     if request.method == 'POST':
         item_dict = {}
         db = shelve.open('storage.db', 'w')
@@ -854,6 +857,8 @@ def delete_stock(id):
 
 @kin.route('/restock/<int:id>', methods=['GET', 'POST'])
 def restock(id):
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     count = 0
     supplier_dict = {}
     supplier_list = []
@@ -914,6 +919,8 @@ def low_stock_bulk_restock():
 
 @kin.route('/delete_shop/<int:id>', methods=['GET', 'POST'])
 def delete_shop(id):
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     if request.method == 'POST':
         item_dict = {}
         db = shelve.open('storage.db', 'w')
@@ -988,6 +995,8 @@ def suppliers_list(sort):
 
 @kin.route('/deleteSupplier/<int:id>', methods=['POST'])
 def delete_supplier(id):
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     supplier_dict = {}
     db = shelve.open('storage.db', 'w')
     supplier_dict = db['supplier']
@@ -1065,10 +1074,4 @@ def set_default(supplier_id):
     session['default_supplier'] = current_supplier.get_name() + ' is set as default for ' + current_supplier.get_stock()
 
     return redirect(url_for('kin.stock'))
-
-
-@kin.route('/manage_account')
-def mananage_account():
-    user_list = [1]
-    return render_template('Manage_staff_accounts.html', users_list = user_list)
 

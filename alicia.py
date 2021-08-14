@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, B
 import User
 from Forms import CreateUserForm, SearchUserForm
 from datetime import datetime
+from url_jumping import check_role
 
 UPLOAD_FOLDER = 'static/img/uploaded'
 ALLOWED_EXTENSIONS = {'png'}
@@ -19,6 +20,8 @@ alicia = Blueprint('alicia', __name__, template_folder='templates')
 
 @alicia.route('/temp_record', methods=['GET', 'POST'])
 def create_user():
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     create_user_form = CreateUserForm(request.form)
 
     locations_dict = {}
@@ -69,6 +72,8 @@ def create_user():
 
 @alicia.route('/temp_search_user', methods=['GET', 'POST'])
 def search_user():
+    if not check_role('Deliveryman'):
+        return redirect(url_for('home'))
     search_user_form = SearchUserForm(request.form)
     search_list = []
     count = 0
@@ -230,26 +235,6 @@ def authenticate():
 
                 role = session.get('pre_role')
                 session['role'] = role
-                if role == 'Customer':
-                    session['Customer'] = True
-                    session['Staff'] = False
-                    session['Deliveryman'] = False
-                    session['HR'] = False
-                    print(session.get('HR'))
-                else:
-                    session['Customer'] = False
-                    if role == 'HR':
-                        session['HR'] = True
-                        session['Staff'] = False
-                        session['Deliveryman'] = False
-                    elif role == 'Staff':
-                        session['Deliveryman'] = False
-                        session['HR'] = False
-                        session['Staff'] = True
-                    elif role == 'Deliveryman':
-                        session['HR'] = False
-                        session['Staff'] = False
-                        session['Deliveryman'] = True
 
                 return redirect(url_for('home'))
 

@@ -11,6 +11,7 @@ from flask_mysqldb import MySQL
 import MySQLdb.cursors
 from cryptography.fernet import Fernet
 import bcrypt
+from url_jumping import check_role
 
 qing = Flask(__name__)
 qing.secret_key = 'any_random_string'
@@ -28,6 +29,8 @@ qing = Blueprint('qing', __name__, template_folder='templates', static_folder='s
 
 @qing.route('/orders', methods=['GET', 'POST'])
 def orders():
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     db = shelve.open('storage.db', 'r')
     try:
         collect_dict = db['confirmed_collect']
@@ -191,6 +194,8 @@ def Dest_East():
 
 @qing.route('/All_Deliveries')
 def All_Deliveries():
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     order_dict = {}
     try:
         db = shelve.open('storage.db', 'r')
@@ -207,6 +212,8 @@ def All_Deliveries():
 
 @qing.route('/All_Self_collection')
 def All_Self_collection():
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     order_dict = {}
     try:
         db = shelve.open('storage.db', 'r')
@@ -223,9 +230,10 @@ def All_Self_collection():
 
 @qing.route('/Create_Deliverymen', methods=['GET', 'POST'])
 def Create_Deliverymen():
+    if not check_role('HR'):
+        return redirect(url_for('home'))
     count = 1
     create_Staff_form = CreateStaff(request.form)
-    print(create_Staff_form.errors)
     if request.method == 'POST' and create_Staff_form.validate():
         deliverymen_dict = {}
         db = shelve.open('storage.db', 'c')
@@ -301,11 +309,12 @@ def Create_Deliverymen():
             # Encrypt the email and convert to bytes by calling f.encrypt()
             encryptedEmail = f.encrypt(email.encode())
             encrypted_phone = f_phone.encrypt(str(phone_num).encode())
+            Staffstatus = 'enabled'
 
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            cursor.execute('INSERT INTO staff VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+            cursor.execute('INSERT INTO staff VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
                            (staffid, first_name, last_name, gender, encryptedEmail, role, outlet, 'NULL', region,
-                            hash_password, encrypted_phone, remarks, key, phone_num_key))
+                            hash_password, encrypted_phone, remarks, key, phone_num_key, Staffstatus))
             mysql.connection.commit()
             session['fname'] = first_name
             session['lname'] = last_name
@@ -324,6 +333,8 @@ def Create_Deliverymen():
 @qing.route('/Display_Deliverymen/<sort>', defaults={'id': None})
 @qing.route('/Display_Deliverymen/<sort>/<id>')
 def Display_Staff(sort, id):
+    if not check_role('HR'):
+        return redirect(url_for('home'))
     users_list = {}
     order_list = {}
     decryptedEmail = 'NULL'
@@ -477,28 +488,13 @@ def Display_Staff(sort, id):
 
 @qing.route('/updateDeliverymen/<id>/', methods=['GET', 'POST'])
 def update_Deliverymen(id):
+    if not check_role('HR'):
+        return redirect(url_for('home'))
     update_Deliverymen_form = deliverymen_profile_update(request.form)
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute("SELECT * FROM Staff")
     account_list = cursor.fetchall()
     if request.method == 'POST' and update_Deliverymen_form.validate():
-        # users_dict = {}
-        # db = shelve.open('storage.db', 'w')
-        # users_dict = db['Deliverymen']
-
-        # user = users_dict.get(id)
-        # user.set_first_name(update_Deliverymen_form.first_name.data)
-        # user.set_last_name(update_Deliverymen_form.last_name.data)
-        # user.set_gender(update_Deliverymen_form.gender.data)
-        # user.set_email(update_Deliverymen_form.email.data)
-        # user.set_contact_no(update_Deliverymen_form.contact_no.data)
-        # user.set_regions(update_Deliverymen_form.regions.data)
-        # user.set_remarks(update_Deliverymen_form.remarks.data)
-
-        # db['Deliverymen'] = users_dict
-        # db.close()
-
-        # session['Deliverymen_updated'] = user.get_first_name() + ' ' + user.get_last_name()
         for account in account_list:
             if account['StaffID'] == id:
                 fname = update_Deliverymen_form.first_name.data
@@ -514,13 +510,10 @@ def update_Deliverymen(id):
 
                 f = Fernet(key)
                 f_phone = Fernet(phone_key)
-                # Encrypt the email and convert to bytes by calling f.encrypt()
                 encryptedEmail = f.encrypt(email.encode())
                 encryptedPhone = f_phone.encrypt(str(phone_num).encode())
 
                 salt = bcrypt.gensalt(rounds=16)
-                # A hashed value is created with hashpw() function, which takes the cleartext value and a salt as
-                # parameters.
                 hash_password = bcrypt.hashpw(password.encode(), salt)
 
                 if password != '' or password != ' ':
@@ -539,19 +532,6 @@ def update_Deliverymen(id):
 
         return redirect(url_for('qing.Display_Staff'))
     else:
-        # users_dict = {}
-        # db = shelve.open('storage.db', 'r')
-        # users_dict = db['Deliverymen']
-        # db.close()
-
-        # user = users_dict.get(id)
-        # update_Deliverymen_form.first_name.data = user.get_first_name()
-        # update_Deliverymen_form.last_name.data = user.get_last_name()
-        # update_Deliverymen_form.gender.data = user.get_gender()
-        # update_Deliverymen_form.email.data = user.get_email()
-        # update_Deliverymen_form.contact_no.data = user.get_contact_no()
-        # update_Deliverymen_form.regions.data = user.get_regions()
-        # update_Deliverymen_form.remarks.data = user.get_remarks()
 
         for account in account_list:
             if account['StaffID'] == id:
@@ -580,18 +560,8 @@ def update_Deliverymen(id):
 
 @qing.route('/deleteDeliverymen/<id>', methods=['POST'])
 def delete_Deliverymen(id):
-    users_dict = {}
-    # db = shelve.open('storage.db', 'w')
-    # users_dict = db['Deliverymen']
-    # deliveryman_login = db['Deliverymen_login']
-
-    # user = users_dict.pop(id)
-    # deliveryman_login.pop(user.get_email())
-
-    # db['Deliverymen'] = users_dict
-    # db.close()
-
-    # session['Deliverymen_deleted'] = user.get_first_name() + ' ' + user.get_last_name()
+    if not check_role('HR'):
+        return redirect(url_for('home'))
     # SSP CODE
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute("SELECT * FROM Staff")
@@ -1029,58 +999,75 @@ def deliverymen_update_profile(id):
 
 @qing.route('/deliverymen_orders')  # Delivery men see his orders
 def deliverymen_orders():
-    email = session.get('current')
+    if not check_role('Deliveryman'):
+        return redirect(url_for('home'))
+    email = session.get('email')
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     orders_list = []
     db = shelve.open('storage.db', 'r')
-    # deliverymen_login = db["Deliverymen_login"]
     assign_orders = db['assignDeliverymen']
-    # current_id = deliverymen_login.get(email)
-    # print(current_id)
-    # orders_list = assign_orders.get(current_id)
-    # print(orders_list)
     cursor.execute('Select * From Staff')
     account = cursor.fetchone()
     while account is not None:
         if account:
             key = account['symmetrickey']
-            # Load the key
             f = Fernet(key)
-            # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
-            # using.encode()
             decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
-            # call .decode () to convert from Binary to String – to be displayed in Home.html.
             decryptedEmail = decryptedEmail_Binary.decode()
             if decryptedEmail == email:
-                # orders_list.append(account['order_number'])
                 orders_list = assign_orders.get(account['StaffID'])
-                print(assign_orders)
         account = cursor.fetchone()
     return render_template('ordersAssigned(deliveryman).html', orders_list=orders_list)
 
 
 @qing.route('/DeliverymenProfile', methods=['GET', 'POST'])
 def DeliverymenProfile():
-    email = session.get('current')
+    email = session.get('email')
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    # db = shelve.open('storage.db', 'r')
-    # deliverymen_login = db["Deliverymen_login"]
-    # Deliverymen_dict = db['Deliverymen']
-    # current_id = deliverymen_login.get(email)
     Deliverymen_list = []
-    # Deliverymen = Deliverymen_dict.get(current_id)
-    # Deliverymen_list.append(Deliverymen)
     cursor.execute('Select * From Staff Where role = "Deliveryman"')
     account = cursor.fetchone()
     if account:
         key = account['symmetrickey']
-        # Load the key
         f = Fernet(key)
-        # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
-        # using.encode()
         decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
-        # call .decode () to convert from Binary to String – to be displayed in Home.html.
         decryptedEmail = decryptedEmail_Binary.decode()
         if decryptedEmail == email:
             Deliverymen_list.append(account)
     return render_template('DeliverymenProfile.html', users_list=Deliverymen_list, email=email)
+
+
+@qing.route('/disable/<int:id>/',methods=['POST'])
+def disable(id):
+    staffStatus = session.get('staffStatus')
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("SELECT * FROM Staff")
+
+    account = cursor.fetchone()
+    while account is not None:
+        if account['staffStatus'] == "disabled":
+            cursor.execute(
+                'UPDATE Staff SET staffStatus = %s WHERE StaffID = %s',
+                (
+                    'enabled', id
+                ))
+            mysql.connection.commit()
+            print(account['staffStatus'])
+
+            return redirect(url_for('qing.Display_Staff'))
+
+
+        else:
+            if account['staffStatus'] == 'enabled':
+                cursor.execute(
+                    'UPDATE Staff SET staffStatus = %s WHERE StaffID = %s',
+                    (
+                        "disabled", id
+                    ))
+                mysql.connection.commit()
+                print(account['staffStatus'])
+
+                return redirect(url_for('qing.Display_Staff'))
+        account = cursor.fetchone()
+
+    return redirect(url_for('qing.Display_Staff'))

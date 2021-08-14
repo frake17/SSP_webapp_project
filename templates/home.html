@@ -8,6 +8,12 @@
     {{ messages }}
 </div>
 {% endfor %}
+{% if 'access denied' in session %}
+<div class="alert alert-danger alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('access denied', None) }} was deleted.
+</div>
+{% endif %}
 <style>
     body {
     overflow : hidden;

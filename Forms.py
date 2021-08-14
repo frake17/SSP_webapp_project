@@ -334,7 +334,6 @@ class CreateStaff(Form):
         if not special_characters:
             raise ValidationError('Password must contain at least 1 special character')
 
-
 class deliverymen_profile_update(Form):
     first_name = StringField('First Name :', [validators.Length(min=1, max=150), validators.DataRequired()])
     last_name = StringField('Last Name :', [validators.Length(min=1, max=150), validators.DataRequired()])

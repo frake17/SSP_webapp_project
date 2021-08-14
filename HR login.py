@@ -17,7 +17,7 @@ phone = f.encrypt(phone.encode())
 print(key)
 print(phone)
 
-email = 'shengsionghr@gmail.com'
+email = 'shengsionghr1@gmail.com'
 key = Fernet.generate_key()
 # Load the key into the Crypto API
 print('key: ', key)

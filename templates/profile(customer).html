@@ -27,6 +27,11 @@ p {
     <button class="close" data-dismiss="alert" type="button">&times;</button>
     {{ session.pop('user_deleted', None) }} was deleted.
 </div>
+{% elif 'Password updated' in session %}
+<div class="alert alert-danger alert-dismissible">
+    <button class="close" data-dismiss="alert" type="button">&times;</button>
+    {{ session.pop('Password Updated', None) }} was deleted.
+</div>
 {% endif %}
 <h1 class="display-4">Profile</h1>
 

@@ -17,6 +17,7 @@ from random import randint
 from datetime import datetime, timedelta
 from cryptography.fernet import Fernet
 from twilio.rest import Client
+from url_jumping import check_role  # SSP CODE DONE BY KIN
 
 elly = Flask(__name__)
 elly.secret_key = 'any_random_string'
@@ -71,38 +72,6 @@ def signup():
     recaptcha_forms = recaptcha_form(request.form)
     if request.method == 'POST' and signup_form.validate():
         if request.method == 'POST' and signup_form.validate() and optional_form.validate():
-
-            # users_dict = {}
-            # db = shelve.open('storage.db', 'c')
-
-            # users_list = []
-            # for key in users_dict:
-            #    user = users_dict.get(key)
-            #    if key == signup_form.email.data:
-            #        flash("Account already exist")
-            #        return redirect(url_for('home'))
-
-            # try:
-            #    users_dict = db['Users']
-            # except:
-            #    print("Error in retrieving Users from storage.db.")
-
-            # user = User.User(signup_form.first_name.data, signup_form.last_name.data, signup_form.email.data,
-            #                signup_form.password.data)
-            # print("===user====", user)
-            # users_dict[user.get_email()] = user
-            # db['Users'] = users_dict
-
-            # Test codes
-            # users_dict = db['Users']
-
-            # user = users_dict[user.get_email()]
-            # print(user.get_first_name(), user.get_last_name(), "was stored in storage.db successfully with user_id ==",
-            #      user.get_user_id())
-
-            # db.close()
-
-            # session['user_created'] = user.get_first_name() + ' ' + user.get_last_name()
 
             # MySQL SSP Codes
             r = requests.post('https://www.google.com/recaptcha/api/siteverify',
@@ -160,7 +129,6 @@ def signup():
                     Card_cvv_key = 'NULL'
 
                 # conformation_code = randint(000000, 999999)
-                print('4')
                 first_name = signup_form.first_name.data
                 last_name = signup_form.last_name.data
                 email = signup_form.email.data
@@ -184,7 +152,6 @@ def signup():
                         break
                     account = cursor.fetchone()
                 if status != 'User is registered':
-                    print('done')
                     # Password Hashing
                     # Create a random number (Salt)
                     salt = bcrypt.gensalt(rounds=16)
@@ -262,16 +229,16 @@ def send_sms():
 
 @elly.route('/signup_confirmation', methods=['GET', 'POST'])  # SSP CODE DONE BY KIN
 def signup_confirmation():
-    time_change = timedelta(minutes=5)
-    date = session.get('date')
-    Changed_time = date + time_change
-    Changed_time = Changed_time.replace(tzinfo=None)
+    time_change = timedelta(minutes=1)
     first_name = session['fname']
     last_name = session['lname']
     status = session.get('code_sent', False)
     conformation_code = session.get('code')
     print(conformation_code)
     if request.method == 'POST' and status == True:
+        date = session.get('date')
+        Changed_time = date + time_change
+        Changed_time = Changed_time.replace(tzinfo=None)
         code = request.form['confirmation']
         if datetime.now().replace(tzinfo=None) > Changed_time:
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -300,18 +267,6 @@ def signup_confirmation():
     return render_template('Signup_confirmation.html')
 
 
-@elly.route('/resend', methods=['POST', 'GET'])
-def resend():
-    current_time = datetime.now()
-    email = session.get('email')
-    conformation_code = randint(000000, 999999)
-    msg = Message('Hello', sender='smtp.gmail.com', recipients=[email])
-    msg.body = "Conformation code is: %d" % conformation_code
-    mail.send(msg)
-
-    return redirect(url_for('elly.signup_confirmation', conformation_code=conformation_code, date=current_time))
-
-
 @elly.route('/Account_created', methods=['GET', 'POST'])  # SSP CODE DONE BY KIN
 def account_created():
     first_name = session.get('fname')
@@ -323,18 +278,9 @@ def account_created():
 
 @elly.route('/retrieveUsers')
 def retrieve_users():
-    # users_dict = {}
-    # db = shelve.open('storage.db', 'r')
-    # try:
-    #    users_dict = db['Users']
-    # except:
-    #    print('no users')
-    # db.close()
-
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     users_list = {}
-    # for key in users_dict:
-    #    user = users_dict.get(key)
-    #    users_list.append(user)
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute('SELECT * FROM Customers')
     account = cursor.fetchone()
@@ -351,16 +297,10 @@ def retrieve_users():
     return render_template('retrieveUsers(admin).html', count=len(users_list), users_list=users_list)
 
 
-@elly.route('/deleteUser/<email>', methods=['POST'])
+@elly.route('/deleteUser/<email>', methods=['POST']) # For staff
 def delete_user(email):
-    # users_dict = {}
-    # db = shelve.open('storage.db', 'w')
-    # users_dict = db['Users']
-
-    # users_dict.pop(email)
-
-    # db['Users'] = users_dict
-    # db.close()
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute('SELECT * FROM Customers')
     account = cursor.fetchone()
@@ -387,9 +327,7 @@ def delete_user(email):
 def login():
     msg = ''
     acct_exist = False
-
     if request.method == "POST" and 'email' in request.form and 'passwd' in request.form:
-        print('work')
         email = request.form['email']
         passwd = request.form['passwd']
         # Check if account is in customers database
@@ -398,7 +336,7 @@ def login():
         cust_acct = cursor.fetchall()
         i = 0
 
-        while i < len(cust_acct) and session.get('pre_role') != 'Customer':
+        while i < len(cust_acct):
             for row in cust_acct:
                 i += 1
                 cust_key = row['symmetrickey']  # symmetrickey
@@ -433,13 +371,14 @@ def login():
             staff_acct = cursor.fetchall()
             k = 0
 
-            while k < len(staff_acct) and session.get('pre_role') != 'Customer':
+            while k < len(staff_acct):
                 for row in staff_acct:
                     k += 1
                     staff_key = row['symmetrickey']  # symmetrickey
                     staff_f = Fernet(staff_key)
                     staff_decryptedEmail_Binary = staff_f.decrypt(row['encrypted_email'].encode())  # encrypted_email
                     staff_decryptedEmail = staff_decryptedEmail_Binary.decode()
+                    print(staff_decryptedEmail)
 
                     if email.lower() == staff_decryptedEmail.lower():
                         print("Account exist in database")
@@ -525,7 +464,6 @@ def send_pwemail():
 
 @elly.route('/forgetPassword', methods=['GET', 'POST'])  # SSP CODE DONE BY ELLY
 def forgetPassword():
-    msg = ''
     fname = session.get('fname')
     lname = session.get('lname')
     if 'email' in session:
@@ -546,10 +484,7 @@ def forgetPassword():
 def logout():
     try:
         session.pop('email', None)
-        session.pop('Staff', None)
-        session.pop('Customer', None)
-        session.pop('Deliveryman', None)
-        session.pop('HR', None)
+        session.pop('role', None)
     except:
         flash('User is not logged in')
     return redirect(url_for('home'))
@@ -575,8 +510,10 @@ def profile():
     return redirect(url_for('login'))
 
 
-@elly.route('/deleteAcc/<email>', methods=['POST'])
+@elly.route('/deleteAcc/<email>', methods=['POST']) # for customer
 def delete_acc(email):
+    if not check_role('Customer'):
+        return redirect(url_for('home'))
     try:
         session.pop('email', None)
         session.pop('customer', None)
@@ -608,6 +545,8 @@ def delete_acc(email):
 # ssp
 @elly.route('/pwSecurity', methods=['GET', 'POST'])  # SSP CODE DONE BY ELLY
 def pwSecurity():
+    if not check_role('Customer'):
+        return redirect(url_for('home'))
     msg = ''
     fname = session.get('fname')
     lname = session.get('lname')
@@ -620,18 +559,20 @@ def pwSecurity():
             account = cursor.fetchone()
             answer = account['hashed_security_ans']
             if str(polynomialRollingHash(security_answer)) == str(answer):
-                return redirect(url_for('elly.forgetPassword'))
+                return redirect(url_for('elly.update_password'))
     return render_template('updatepwSecurity.html', msg='', form=pwSecurity)
 
 
 @elly.route('/updatePassword', methods=['GET', 'POST'])  # SSP CODE DONE BY ELLY
 def update_password():
+    if not check_role('Customer'):
+        return redirect(url_for('home'))
     msg = ''
     if 'email' in session:
         email = session.get('email')
         update_password = UpdatePassword(request.form)
-        if request.method == 'POST' and 'password' in request.form:
-            newpassword = request.form['newpassword']
+        if request.method == 'POST' and 'passwd' in request.form:
+            newpassword = request.form['passwd']
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute('SELECT * FROM Customers')
             account = cursor.fetchone()
@@ -644,29 +585,21 @@ def update_password():
                     break
             fname = account['fname']
             lname = account['lname']
-            if request.method == 'POST' and UpdatePassword.validate():
-                print('work')
-                # users_dict = {}
-                # db = shelve.open('storage.db', 'w')
-                # users_dict = db['Users']
+            salt = bcrypt.gensalt(rounds=16)
+            hash_password = bcrypt.hashpw(newpassword.encode(), salt)
+            cursor.execute('UPDATE Customers SET hashed_password = %s WHERE fname = %s and lname = %s',
+                           (hash_password, fname, lname))
 
-                # user = users_dict.get(email)
-                # user.set_password(update_password_form.password.data)
-                # db['Users'] = users_dict
-                # db.close()
-                salt = bcrypt.gensalt(rounds=16)
-                # A hashed value is created with hashpw() function, which takes the cleartext value and a salt as
-                # parameters.
-                hash_password = bcrypt.hashpw(newpassword.encode(), salt)
-                cursor.execute('UPDATE Customers SET hashed_password = %s WHERE fname = %s and lname = %s',
-                               (hash_password, fname, lname))
-
-                mysql.connection.commit()
+            mysql.connection.commit()
+            session['Password Updated'] = 'Password has been updated'
+            return redirect(url_for('elly.profile'))
         return render_template('updatePassword(cust).html', msg='', form=update_password)
 
 
 @elly.route('/updateProfile/<email>/', methods=['GET', 'POST'])
 def update_profile(email):
+    if not check_role('Customer'):
+        return redirect(url_for('home'))
     update_profile_form = UpdateProfile(request.form)
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute('SELECT * FROM Customers')
@@ -730,6 +663,8 @@ def update_profile(email):
 
 @elly.route('/createLocation', methods=['GET', 'POST'])
 def create_location():
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     location_form = CreateLocation(request.form)
     count = 1
     if request.method == 'POST' and location_form.validate():
@@ -766,6 +701,8 @@ def create_location():
 
 @elly.route('/retrieveLocations')
 def retrieve_locations():
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     locations_dict = {}
     db = shelve.open('location.db', 'r')
     locations_dict = db['Locations']
@@ -799,6 +736,8 @@ def store_locator():
 
 @elly.route('/deleteLocation/<int:id>', methods=['POST'])
 def delete_location(id):
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     locations_dict = {}
     db = shelve.open('location.db', 'w')
     locations_dict = db['Locations']
@@ -813,6 +752,8 @@ def delete_location(id):
 
 @elly.route('/updateLocation/<int:id>/', methods=['GET', 'POST'])
 def update_location(id):
+    if not check_role('Staff'):
+        return redirect(url_for('home'))
     update_location_form = CreateLocation(request.form)
     if request.method == 'POST' and update_location_form.validate():
         locations_dict = {}

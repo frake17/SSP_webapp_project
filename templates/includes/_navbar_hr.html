@@ -8,14 +8,14 @@
             <a class="nav-link" href="/">Home</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="/Display_Deliverymen">Display Staff</a>
+            <a class="nav-link" href="/Display_Deliverymen">Display Deliverymen</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="/Create_Deliverymen">Create Staff Account</a>
+            <a class="nav-link" href="/Create_Deliverymen">Create Deliverymen</a>
         </li>
         <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" id="user">
-                {{session.get('fname', None)}} {{session.get('lname', None)}}
+                User
             </a>
             <div class="dropdown-menu">
                 {% if 'email' in session %}

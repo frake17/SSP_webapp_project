@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
@@ -43,6 +43,7 @@ def allowed_file(filename):
 def home():
     return render_template('home.html')
 
+
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     if request.method == "POST":
@@ -50,6 +51,7 @@ def login():
             return redirect(url_for("authenticate"))
 
     return render_template('login.html')
+
 
 @app.route("/authenticate", methods=['GET', 'POST'])
 def authenticate():
