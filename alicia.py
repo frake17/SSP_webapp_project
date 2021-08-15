@@ -226,7 +226,7 @@ def authenticate():
     session.pop('reattemptTime', None)
     id = session.get('id')
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('UPDATE customers SET no_of_failed_attempts=NULL WHERE id=%s', id)
+    cursor.execute('UPDATE customers SET no_of_failed_attempts=NULL WHERE id=%s', (id,))
     mysql.connection.commit()
 
     msg = ''
@@ -243,6 +243,7 @@ def authenticate():
             mail.send(content)
 
             session['sendAuth'] = True
+            session['code method'] = 'email'
 
             time_start = datetime.now()
             duration = timedelta(minutes=3)
@@ -259,19 +260,17 @@ def authenticate():
             auth_token = '40520b503bb15b03ab4e71093eb084b3'
             client = Client(account_sid, auth_token)
             phone_num = str(session.get('phone_num'))
-            conformation_code = randint(000000, 999999)
-            current_time = datetime.now().replace(tzinfo=None)
 
             message = client.messages \
                 .create(
                 body="Your login authentication code is %d" % gen_auth_code,
                 from_='+19044743219',
                 to='+65' + phone_num
-                #to='+65' + '87188040'
             )
 
             print(message.sid)
             session['sendAuth'] = True
+            session['code method'] = 'sms'
 
             time_start = datetime.now()
             duration = timedelta(minutes=3)
@@ -310,5 +309,49 @@ def authenticate():
                     return redirect(url_for('alicia.login'))
 
     return render_template('authenticate.html', msg=msg, form=AuthenticateLogin)
+
+
+@alicia.route('/resend_code', methods=['GET', 'POST'])
+def resend_code():
+    gen_auth_code = randint(100000, 999999)
+    session['gen_auth_code'] = gen_auth_code
+
+    if session.get('sendAuth') == True:
+        if session.get('code method') == "email":
+            email = session.get('email')
+            content = Message('Sheng Siong Supermarket Login', sender='smtp.gmail.com', recipients=[email])
+            content.body = "Your new login authentication code is %d" % session.get('gen_auth_code')
+            mail.send(content)
+
+            session['sendAuth'] = True
+
+        elif session.get('code method') == 'sms':
+            account_sid = 'ACd79f39ac30b9742e43c153ea68a04918'
+            auth_token = '40520b503bb15b03ab4e71093eb084b3'
+            client = Client(account_sid, auth_token)
+            phone_num = str(session.get('phone_num'))
+
+            message = client.messages \
+                .create(
+                body="Your new login authentication code is %d" % gen_auth_code,
+                from_='+19044743219',
+                to='+65' + phone_num
+            )
+
+            print(message.sid)
+            session['sendAuth'] = True
+
+        time_start = datetime.now()
+        duration = timedelta(minutes=3)
+        expire_time = time_start + duration
+        session['expire_time'] = expire_time
+        time_format = expire_time.strftime('%H:%M')
+        msg = 'Your new authentication code will expire at %s' % time_format
+        #return redirect(url_for('alicia.authenticate'))
+
+    else:
+        msg = 'You have not chosen a method to send your authentication code'
+
+    return render_template(url_for('/alicia.authenticate'), msg=msg)
 
 

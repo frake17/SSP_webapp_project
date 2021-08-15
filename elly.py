@@ -181,7 +181,7 @@ def signup():
 
                     # cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
                     cursor.execute(
-                        'INSERT INTO customers_temp VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                        'INSERT INTO customers_temp VALUES (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NULL)',
                         (first_name, last_name, encryptedEmail, hash_password, phone_num, card_num, exp_date, CVV,
                          security_qn, hash_security_ans, key, phone_key, Card_num_key, Card_exp_key, Card_cvv_key))
                     mysql.connection.commit()
@@ -363,7 +363,9 @@ def login():
                     phonenum_key = row['Phone_num_key']
                     phonenum_f = Fernet(phonenum_key)
                     phone_num = phonenum_f.decrypt(row['Phone_num'].encode())
+                    phone_num = phone_num.decode('utf-8')
                     session['phone_num'] = phone_num
+                    print(phone_num)
 
                 if email.lower() == cust_decryptedEmail.lower():
                     print("Account exist in database")

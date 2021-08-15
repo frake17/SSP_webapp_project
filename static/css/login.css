@@ -3,7 +3,7 @@ body {
     vertical-align: middle;
 }
 
-input[name="username"], input[name="passwd"], input[name="authenticate"], input[name = 'email'] input[name="auth_code"]{
+input[name="username"], input[name="passwd"], input[name="authenticate"], input[name = 'email'], input[name="auth_code"]{
     width: 100%;
     padding: 12px 20px;
     margin: 4px 0;
