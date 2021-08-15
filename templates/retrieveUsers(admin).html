@@ -42,6 +42,7 @@
             <th>First Name</th>
             <th>Last Name</th>
             <th>Email</th>
+            <th>Change Password</th>
             <th></th>
             <th></th>
 
@@ -54,10 +55,44 @@
             <td>{{ users_list.get(user)['fname'] }}</td>
             <td>{{ users_list.get(user)['lname'] }}</td>
             <td>{{ user }}</td>
-            <td><button class="btn btn-warning"
+            <td>
+                {% if users_list.get(email)['role'] == 'Staff' %}
+                N.A
+                {% else %}
+                <form action="{{url_for('elly.updateCustPassword',id = users_list.get(user)['id'])}}" method="POST">
+                <button class="btn btn-danger" data-target="#myModal2_{{ users_list.get(user)['id'] }}" data-toggle="modal"
                             type="button">
-                        Disable
-                    </button></td>
+                        Change
+                    </button>
+
+                    <!-- The Modal -->
+                    <div class="modal" id="myModal2_{{ users_list.get(user)['id'] }}">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+
+                                <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Change password Confirmation</h4>
+                                    <button class="close" data-dismiss="modal" type="button">&times;</button>
+                                </div>
+
+                                <!-- Modal body -->
+                                <div class="modal-body">
+                                    Are you sure you want to change password for {{users_list.get(user)['fname']}} {{users_list.get(user)['lname']}}?
+                                </div>
+
+                                <!-- Modal footer -->
+                                <div class="modal-footer">
+                                    <input class="btn btn-danger" type="submit" value="Confirm">
+                                    <button class="btn btn-secondary" data-dismiss="modal" type="button">Cancel</button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                    {% endif %}
+            </td>
             <td>
                 <form action="{{url_for('elly.delete_user', email=user)}}" method="POST">
                     <button class="btn btn-danger" data-target="#myModal_{{ users_list.get(user)['fname'] }}" data-toggle="modal"

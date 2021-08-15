@@ -354,6 +354,7 @@ def login():
             for row in cust_acct:
                 i += 1
                 id = row['id']
+                session['id'] = id
                 cust_key = row['symmetrickey']  # symmetrickey
                 cust_f = Fernet(cust_key)
                 cust_decryptedEmail_Binary = cust_f.decrypt(row['encrypted_email'].encode())  # encrypted_email
@@ -385,6 +386,8 @@ def login():
                             session['pre_role'] = 'Customer'
                             print("Password is correct")
                             pw_match = True
+                            cursor.execute('UPDATE customers SET no_of_failed_attempts=NULL WHERE id=%s',(id, )) #new
+                            mysql.connection.commit()
                             break
 
                         else:
@@ -409,7 +412,7 @@ def login():
                         msg = 'You have more than 3 failed attempts, please wait until %s to retry' % time_format
                         failedAttempts += 1
                         cursor.execute('UPDATE customers SET no_of_failed_attempts=%s WHERE id=%s',
-                                       (failedAttempts, id))
+                                       (failedAttempts, id))  # new
                         mysql.connection.commit()
 
                     elif failedAttempts > 3 and ('reattemptTime' in session):
@@ -424,6 +427,8 @@ def login():
                                 session['id'] = row['id']
                                 print("Password is correct")
                                 pw_match = True
+                                cursor.execute('UPDATE customers SET no_of_failed_attempts=NULL WHERE id=%s', (id, )) #new
+                                mysql.connection.commit()
                                 break
 
                             else:
@@ -454,6 +459,7 @@ def login():
                     for row in staff_acct:
                         k += 1
                         id = row['StaffID']
+                        session['id'] = id
                         staff_key = row['symmetrickey']  # symmetrickey
                         staff_f = Fernet(staff_key)
                         staff_decryptedEmail_Binary = staff_f.decrypt(row['encrypted_email'].encode())  # encrypted_email
@@ -483,6 +489,8 @@ def login():
                                     session['id'] = row['id']
                                     print("Password is correct")
                                     pw_match = True
+                                    cursor.execute('UPDATE staff SET no_of_failed_attempts=NULL WHERE StaffID=%s', (id, )) #new
+                                    mysql.connection.commit()
                                     break
 
                                 else:
@@ -496,7 +504,7 @@ def login():
                                     elif failedAttempts < 3:
                                         failedAttempts += 1
 
-                                    cursor.execute('UPDATE staff SET no_of_failed_attempts=%s WHERE id=%s', (failedAttempts, id))
+                                    cursor.execute('UPDATE staff SET no_of_failed_attempts=%s WHERE StaffID=%s', (failedAttempts, id))
                                     mysql.connection.commit()
                                     break
 
@@ -518,6 +526,9 @@ def login():
                                         session['id'] = row['id']
                                         print("Password is correct")
                                         pw_match = True
+                                        cursor.execute('UPDATE staff SET no_of_failed_attempts=NULL WHERE StaffID=%s',
+                                                       (id,))  # new
+                                        mysql.connection.commit()
                                         break
 
                                     else:
@@ -525,7 +536,7 @@ def login():
                                         print("Wrong password")
                                         pw_match = False
                                         failedAttempts += 1
-                                        cursor.execute('UPDATE staff SET no_of_failed_attempts=%s WHERE id=%s', (failedAttempts, id))
+                                        cursor.execute('UPDATE staff SET no_of_failed_attempts=%s WHERE StaffID=%s', (failedAttempts, id))
                                         mysql.connection.commit()
                                         reattemptDuration = timedelta(minutes=15)
                                         reattemptTime = datetime.now() + reattemptDuration
@@ -940,3 +951,28 @@ def update_location(id):
         update_location_form.area.data = location.get_area()
         update_location_form.availability.data = location.get_availability()
         return render_template('updateLocation(admin).html', form=update_location_form)
+
+
+@elly.route('/updatePassword(cust)/<int:id>/', methods=['POST'])
+def updateCustPassword(id):
+    update_password = UpdatePassword(request.form)
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('SELECT * FROM Customers')
+    account = cursor.fetchone()
+
+    while account is not None:
+        if account['id'] == id:
+            if request.method == 'POST' and 'passwd' in request.form:
+                newpassword = request.form['passwd']
+                print(newpassword)
+
+                salt = bcrypt.gensalt(rounds=16)
+                hash_password = bcrypt.hashpw(newpassword.encode(), salt)
+                cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                cursor.execute('UPDATE Customers SET hashed_password = %s WHERE id = %s',
+                               (hash_password, id))
+                mysql.connection.commit()
+
+                return redirect(url_for('elly.retrieve_users'))
+        account = cursor.fetchone()
+    return render_template('updatePassword(cust).html', form=update_password)

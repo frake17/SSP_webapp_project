@@ -224,10 +224,6 @@ def temp_chart():
 @alicia.route("/authenticate", methods=['GET', 'POST'])  # SSP CODES DONE BY ALICIA
 def authenticate():
     session.pop('reattemptTime', None)
-    id = session.get('id')
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('UPDATE customers SET no_of_failed_attempts=NULL WHERE id=%s', (id,))
-    mysql.connection.commit()
 
     msg = ''
 

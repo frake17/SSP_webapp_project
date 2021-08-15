@@ -150,7 +150,7 @@
                             </div>
                         </div>
                     </div>
-
+                </form>
                 {% elif users_list.get(email)['staffStatus'] == 'disabled' %}
                 <form action="{{url_for('qing.disable', id=users_list.get(email)['StaffID'])}}" method="POST">
                     <button class="btn btn-danger" data-target="#turntoenable_{{users_list.get(email)['StaffID']}}" data-toggle="modal"
