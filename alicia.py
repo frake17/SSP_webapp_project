@@ -24,6 +24,14 @@ alicia.config['MYSQL_HOST'] = 'localhost'
 alicia.config['MYSQL_USER'] = 'root'
 alicia.config['MYSQL_PASSWORD'] = '100carbook'
 alicia.config['MYSQL_DB'] = 'pythonlogin'
+alicia.config['MYSQL_PASSWORD'] = 'Singaporemysql1'
+alicia.config['MYSQL_DB'] = 'ssp'
+alicia.config['MAIL_SERVER'] = 'smtp.gmail.com'
+alicia.config['MAIL_PORT'] = 465
+alicia.config['MAIL_USERNAME'] = 'sspproject405@gmail.com'
+alicia.config['MAIL_PASSWORD'] = 'SSP123456'
+alicia.config['MAIL_USE_TLS'] = False
+alicia.config['MAIL_USE_SSL'] = True
 mysql = MySQL(alicia)
 mail = Mail(alicia)
 alicia = Blueprint('alicia', __name__, template_folder='templates')
@@ -275,10 +283,10 @@ def authenticate():
             time_format = expire_time.strftime('%H:%M')
             msg = 'Your authentication code will expire at %s' % time_format
 
-        elif request.form.get('submit_auth'):
+        if request.form.get('submit_auth'):
             enter_code = int(request.form['auth_code'])
             time_click = datetime.now()
-            if time_click > session.get('expire_time'):
+            if time_click.replace(tzinfo=None) > session.get('expire_time').replace(tzinfo=None):
                 print("Authentication code expired")
                 msg = 'Your authentication code has expired, please login again'
                 return redirect(url_for('alicia.login'))
@@ -302,7 +310,7 @@ def authenticate():
                     session.pop('expire_time', None)
                     session.pop('gen_auth_code', None)
                     session.pop('sendAuth', None)
-                    return redirect(url_for('alicia.login'))
+                    return redirect(url_for('elly.login'))
 
     return render_template('authenticate.html', msg=msg, form=AuthenticateLogin)
 

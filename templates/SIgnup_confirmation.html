@@ -36,7 +36,11 @@
         </form>
         <div>
             <a href="/send_email"><button class="btn-primary btn mt-2">Send via EMail</button></a>
+            {% if 'Phone Number' is in session and session.get('Phone Number') != 'NULL' %}
             <a href="/send_sms"><button class="btn-primary btn mt-2">Send via SMS</button></a>
+            {% else %}
+            <a href="/send_sms"><button class="btn-primary btn mt-2" disabled>Send via SMS</button></a>
+            {% endif %}
         </div>
     </div>
 </div>

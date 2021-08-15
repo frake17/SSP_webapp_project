@@ -102,7 +102,6 @@ def signup():
                     f = Fernet(phone_key)
                     encrypted_phone_num = f.encrypt(str(optional_form.Phone_number.data).encode())
                     phone_num = encrypted_phone_num
-                    print('1')
                 else:
                     phone_num = 'NULL'
                     phone_key = 'NULL'
@@ -113,7 +112,6 @@ def signup():
                     f = Fernet(Card_num_key)
                     encrypted_card_num = f.encrypt(str(optional_form.card_number.data).encode())
                     card_num = encrypted_card_num
-                    print('2')
                 else:
                     card_num = 'NULL'
                     Card_num_key = 'NULL'
@@ -124,7 +122,6 @@ def signup():
                     f = Fernet(Card_exp_key)
                     encrypted_card_exp = f.encrypt(str(optional_form.card_number.data).encode())
                     exp_date = encrypted_card_exp
-                    print('3')
                 else:
                     exp_date = 'NULL'
                     Card_exp_key = 'NULL'
@@ -190,7 +187,7 @@ def signup():
                     session['email'] = email
                     # session['code'] = conformation_code
                     session['code_sent'] = False
-                    session['Phone Number'] = optional_form.Phone_number.data
+                    session['Phone Number'] = phone_num
 
                     return redirect(url_for('elly.signup_confirmation'))
                 else:
@@ -343,7 +340,6 @@ def login():
     if request.method == "POST" and 'email' in request.form and 'passwd' in request.form:
         email = request.form['email']
         passwd = request.form['passwd']
-
         # Check if account is in customers database
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM Customers')
@@ -361,12 +357,12 @@ def login():
                 cust_decryptedEmail = cust_decryptedEmail_Binary.decode()
 
                 if not row['Phone_num'] is None:
-                    phonenum_key = row['Phone_num_key']
-                    phonenum_f = Fernet(phonenum_key)
-                    phone_num = phonenum_f.decrypt(row['Phone_num'].encode())
-                    phone_num = phone_num.decode('utf-8')
-                    session['phone_num'] = phone_num
-                    print(phone_num)
+                    if row['Phone_num'] != 'NULL':
+                        phonenum_key = row['Phone_num_key']
+                        phonenum_f = Fernet(phonenum_key)
+                        phone_num = phonenum_f.decrypt(row['Phone_num'].encode())
+                        phone_num = phone_num.decode('utf-8')
+                        session['phone_num'] = phone_num
 
                 if email.lower() == cust_decryptedEmail.lower():
                     print("Account exist in database")
@@ -450,36 +446,72 @@ def login():
                             msg = 'Please wait until %s to retry' % time_format
 
             # Check if account is in staff database
-            else:
-                cursor.execute('SELECT * FROM staff')
-                staff_acct = cursor.fetchall()
-                k = 0
+        else:
+            cursor.execute('SELECT * FROM staff')
+            staff_acct = cursor.fetchall()
+            k = 0
+            while k < len(staff_acct):
+                for row in staff_acct:
+                    k += 1
+                    id = row['StaffID']
+                    session['id'] = id
+                    staff_key = row['symmetrickey']  # symmetrickey
+                    staff_f = Fernet(staff_key)
+                    staff_decryptedEmail_Binary = staff_f.decrypt(row['encrypted_email'].encode())  # encrypted_email
+                    staff_decryptedEmail = staff_decryptedEmail_Binary.decode()
 
-                while k < len(staff_acct) and session.get('pre_role') != 'Customer':
-                    for row in staff_acct:
-                        k += 1
-                        id = row['StaffID']
-                        session['id'] = id
-                        staff_key = row['symmetrickey']  # symmetrickey
-                        staff_f = Fernet(staff_key)
-                        staff_decryptedEmail_Binary = staff_f.decrypt(row['encrypted_email'].encode())  # encrypted_email
-                        staff_decryptedEmail = staff_decryptedEmail_Binary.decode()
+                    if not row['phone_num'] is None:
+                        phonenum_key = row['phone_num_key']
+                        phonenum_f = Fernet(phonenum_key)
+                        phone_num = phonenum_f.decrypt(row['phone_num'].encode())
+                        session['phone_num'] = phone_num
 
-                        if not row['phone_num'] is None:
-                            phonenum_key = row['phone_num_key']
-                            phonenum_f = Fernet(phonenum_key)
-                            phone_num = phonenum_f.decrypt(row['phone_num'].encode())
-                            session['phone_num'] = phone_num
+                    if email.lower() == staff_decryptedEmail.lower():
+                        print("Account exist in database")
+                        failedAttempts = row['no_of_failed_attempts']
+                        acct_exist = True
 
-                        if email.lower() == staff_decryptedEmail.lower():
-                            print("Account exist in database")
-                            failedAttempts = row['no_of_failed_attempts']
-                            acct_exist = True
+                        if row['staffStatus'] == 'disabled':
+                            msg = 'Your account has been disabled'
 
-                            if row['staffStatus'] == 'disabled':
-                                msg = 'Your account has been disabled'
+                        elif failedAttempts == None or failedAttempts < 3:
+                            staff_hashAndSalt = row['hashed_password']
+                            if bcrypt.checkpw(passwd.encode(), staff_hashAndSalt.encode()):
+                                session['loggedin'] = True
+                                session['email'] = staff_decryptedEmail.lower()
+                                role = row['role']
+                                session['pre_role'] = role
+                                session['id'] = row['StaffID']
+                                print("Password is correct")
+                                pw_match = True
+                                cursor.execute('UPDATE staff SET no_of_failed_attempts=NULL WHERE StaffID=%s', (id, )) #new
+                                mysql.connection.commit()
+                                break
 
-                            elif failedAttempts == None or failedAttempts < 3:
+                            else:
+                                msg = 'Wrong email / password entered'
+                                pw_match = False
+                                print("Wrong password")
+
+                                if failedAttempts == None:
+                                    failedAttempts = 1
+
+                                elif failedAttempts < 3:
+                                    failedAttempts += 1
+
+                                cursor.execute('UPDATE staff SET no_of_failed_attempts=%s WHERE StaffID=%s', (failedAttempts, id))
+                                mysql.connection.commit()
+                                break
+
+                        elif failedAttempts == 3:
+                            reattemptDuration = timedelta(minutes=15)
+                            reattemptTime = datetime.now() + reattemptDuration
+                            session['reattemptTime'] = reattemptTime
+                            time_format = session.get('reattemptTime').strftime('%H:%M')
+                            msg = 'You have more than 3 failed attempts, please wait until %s to retry' % time_format
+
+                        elif failedAttempts > 3 and 'reattemptTime' in session:
+                            if datetime.now() > session.get('reattemptTime'):
                                 staff_hashAndSalt = row['hashed_password']
                                 if bcrypt.checkpw(passwd.encode(), staff_hashAndSalt.encode()):
                                     session['loggedin'] = True
@@ -489,61 +521,24 @@ def login():
                                     session['id'] = row['id']
                                     print("Password is correct")
                                     pw_match = True
-                                    cursor.execute('UPDATE staff SET no_of_failed_attempts=NULL WHERE StaffID=%s', (id, )) #new
+                                    cursor.execute('UPDATE staff SET no_of_failed_attempts=NULL WHERE StaffID=%s',
+                                                   (id,))  # new
                                     mysql.connection.commit()
                                     break
 
                                 else:
                                     msg = 'Wrong email / password entered'
-                                    pw_match = False
                                     print("Wrong password")
-
-                                    if failedAttempts == None:
-                                        failedAttempts = 1
-
-                                    elif failedAttempts < 3:
-                                        failedAttempts += 1
-
+                                    pw_match = False
+                                    failedAttempts += 1
                                     cursor.execute('UPDATE staff SET no_of_failed_attempts=%s WHERE StaffID=%s', (failedAttempts, id))
                                     mysql.connection.commit()
+                                    reattemptDuration = timedelta(minutes=15)
+                                    reattemptTime = datetime.now() + reattemptDuration
+                                    session['reattemptTime'] = reattemptTime
+                                    time_format = session.get('reattemptTime').strftime('%H:%M')
+                                    msg = 'You have more than 3 failed attempts, please wait until %s to retry' % time_format
                                     break
-
-                            elif failedAttempts == 3:
-                                reattemptDuration = timedelta(minutes=15)
-                                reattemptTime = datetime.now() + reattemptDuration
-                                session['reattemptTime'] = reattemptTime
-                                time_format = session.get('reattemptTime').strftime('%H:%M')
-                                msg = 'You have more than 3 failed attempts, please wait until %s to retry' % time_format
-
-                            elif failedAttempts > 3 and 'reattemptTime' in session:
-                                if datetime.now() > session.get('reattemptTime'):
-                                    staff_hashAndSalt = row['hashed_password']
-                                    if bcrypt.checkpw(passwd.encode(), staff_hashAndSalt.encode()):
-                                        session['loggedin'] = True
-                                        session['email'] = staff_decryptedEmail.lower()
-                                        role = row['role']
-                                        session['pre_role'] = role
-                                        session['id'] = row['id']
-                                        print("Password is correct")
-                                        pw_match = True
-                                        cursor.execute('UPDATE staff SET no_of_failed_attempts=NULL WHERE StaffID=%s',
-                                                       (id,))  # new
-                                        mysql.connection.commit()
-                                        break
-
-                                    else:
-                                        msg = 'Wrong email / password entered'
-                                        print("Wrong password")
-                                        pw_match = False
-                                        failedAttempts += 1
-                                        cursor.execute('UPDATE staff SET no_of_failed_attempts=%s WHERE StaffID=%s', (failedAttempts, id))
-                                        mysql.connection.commit()
-                                        reattemptDuration = timedelta(minutes=15)
-                                        reattemptTime = datetime.now() + reattemptDuration
-                                        session['reattemptTime'] = reattemptTime
-                                        time_format = session.get('reattemptTime').strftime('%H:%M')
-                                        msg = 'You have more than 3 failed attempts, please wait until %s to retry' % time_format
-                                        break
 
             if acct_exist == False:
                 msg = 'Wrong email / password entered'
@@ -654,6 +649,7 @@ def logout():
     try:
         session.pop('email', None)
         session.pop('role', None)
+        session.pop('Phone Number', None)
     except:
         flash('User is not logged in')
     return redirect(url_for('home'))
