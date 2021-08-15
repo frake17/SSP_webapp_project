@@ -4,7 +4,8 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 
 import Location
 import User
-from Forms import SignUp, Login, CreateLocation, UpdateProfile, UpdatePassword, optional_signup, recaptcha_form, UpdatePassword, ForgetPassword, PwSecurity, FindEmail
+from Forms import SignUp, Login, CreateLocation, UpdateProfile, UpdatePassword, optional_signup, recaptcha_form, \
+    UpdatePassword, ForgetPassword, PwSecurity, FindEmail
 # SSP CODES
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
@@ -62,7 +63,17 @@ def polynomialRollingHash(str):  # SSP CODE DONE BY KIN : To hash string
 
 @elly.route('/loginActivity(cust)')  # SSP CODE DONE BY ZHICHING
 def loginActivity():
-    return render_template('loginActivity(cust).html')
+    # create a list
+    users_list = []
+    fname = session.get('fname')
+    lname = session.get('lname')
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("SELECT * FROM CustomerLoginActivity WHERE fname = %s and lname = %s", (fname, lname))
+    account = cursor.fetchone()
+    while account is not None:
+        users_list.append(account)
+        account = cursor.fetchone()
+    return render_template('loginActivity(cust).html', users_list=users_list)
 
 
 @elly.route('/signup', methods=['GET', 'POST'])  # SSP CODE DONE BY KIN
@@ -297,7 +308,7 @@ def retrieve_users():
     return render_template('retrieveUsers(admin).html', count=len(users_list), users_list=users_list)
 
 
-@elly.route('/deleteUser/<email>', methods=['POST']) # For staff
+@elly.route('/deleteUser/<email>', methods=['POST'])  # For staff
 def delete_user(email):
     if not check_role('Staff'):
         return redirect(url_for('home'))
@@ -358,6 +369,21 @@ def login():
                         print("Password is correct")
                         acct_exist = True
 
+                        res = requests.get("https://ipinfo.io/")
+                        data = res.json()
+                        location = data['city']
+                        ipaddress = data['ip']
+                        fname = row['fname']
+                        lname = row['lname']
+                        logout_time = '2021-08-08'
+                        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                        login_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        session['ipaddress'] = ipaddress
+                        session['login_time'] = login_time
+                        cursor.execute('INSERT INTO CustomerLoginActivity VALUES (NULL, %s, %s, %s, %s, %s, %s)',
+                                       (fname, lname, login_time, location, ipaddress, logout_time))
+                        mysql.connection.commit()
+
                         break
 
                     else:
@@ -395,6 +421,20 @@ def login():
                             session['pre_role'] = role
                             print('pre role: ', session['pre_role'])
 
+                            res = requests.get("https://ipinfo.io/")
+                            data = res.json()
+                            location = data['city']
+                            ipaddress = data['ip']
+                            fname = row['fname']
+                            lname = row['lname']
+                            logout_time = '2021-08-08'
+                            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                            login_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            session['ipaddress'] = ipaddress
+                            session['login_time'] = login_time
+                            cursor.execute('INSERT INTO StaffLoginActivity VALUES (NULL, %s, %s, %s, %s, %s, %s)',
+                                           (fname, lname, login_time, location, ipaddress, logout_time))
+                            mysql.connection.commit()
                             break
 
                         else:
@@ -474,14 +514,28 @@ def forgetPassword():
             # A hashed value is created with hashpw() function, which takes the cleartext value and a salt as
             # parameters.
             hash_password = bcrypt.hashpw(newpassword.encode(), salt)
-            cursor.execute('UPDATE Customers SET hashed_password = %s WHERE fname = %s and lname = %s', (hash_password, fname, lname))
+            cursor.execute('UPDATE Customers SET hashed_password = %s WHERE fname = %s and lname = %s',
+                           (hash_password, fname, lname))
             mysql.connection.commit()
             return redirect(url_for('elly.login'))
         return render_template('forgetPassword(cust).html', msg='')
 
 
-@elly.route('/logout')
+@elly.route('/logout')  # SSP CODE DONE BY ZHICHING
 def logout():
+    ipaddress = session.get('ipaddress')
+    login_time = session.get('login_time')
+    logout_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if session.get("role") == "Deliveryman" or session.get('role') == 'Staff' or session.get('role') == 'HR':
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute("UPDATE StaffLoginActivity SET logout_time = %s WHERE ipaddress = %s AND login_time = %s",
+                       (logout_time, ipaddress, login_time))
+        mysql.connection.commit()
+    elif session.get("role") == 'Customer':
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute("UPDATE CustomerLoginActivity SET logout_time = %s WHERE ipaddress = %s AND login_time = %s",
+                       (logout_time, ipaddress, login_time))
+        mysql.connection.commit()
     try:
         session.pop('email', None)
         session.pop('role', None)
@@ -506,11 +560,11 @@ def profile():
             if email == decryptedEmail:
                 users_list[decryptedEmail] = account
             account = cursor.fetchone()
-        return render_template('profile(customer).html', users_list = users_list)
+        return render_template('profile(customer).html', users_list=users_list)
     return redirect(url_for('login'))
 
 
-@elly.route('/deleteAcc/<email>', methods=['POST']) # for customer
+@elly.route('/deleteAcc/<email>', methods=['POST'])  # for customer
 def delete_acc(email):
     if not check_role('Customer'):
         return redirect(url_for('home'))
@@ -637,8 +691,9 @@ def update_profile(email):
         f = Fernet(key)
         encryptedEmail = f.encrypt(update_profile_form.email.data.encode())
 
-        cursor.execute('UPDATE Customers SET fname = %s, lname = %s, encrypted_email = %s, symmetrickey = %s WHERE id = %s',
-                       (update_profile_form.first_name.data, update_profile_form.last_name.data, encryptedEmail, key, str(id)))
+        cursor.execute(
+            'UPDATE Customers SET fname = %s, lname = %s, encrypted_email = %s, symmetrickey = %s WHERE id = %s',
+            (update_profile_form.first_name.data, update_profile_form.last_name.data, encryptedEmail, key, str(id)))
 
         mysql.connection.commit()
 

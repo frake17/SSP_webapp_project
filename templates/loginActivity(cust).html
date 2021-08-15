@@ -1,16 +1,28 @@
 {% extends "base.html" %}
-{% block title %}Library Loan System - Profile{% endblock %}
+{% block title %} Customer Login Activity {% endblock %}
+
 {% block content %}
 <h2>Login Activity</h2>
 <br>
 <br>
 <p style="font-weight:bold">Where you are logged in</p>
 
-<p><img src="static/img/location-icon-png-4231.png" width="1.5%">Singapore</p>
-<p><span style="color:green;">Active now</span>, This Windows<button style="margin-left:98px;" class="btn btn-warning" data-toggle="modal" type="button">Logout</button></p>
-<hr style="width:50<i class='fas fa-map-marker-alt' style='font-size:24px'></i> %;text-align:left;margin-left:0">
-<p><img src="static/img/location-icon-png-4231.png" width="1.5%">Singapore</p>
-<p>20 hours ago, Samsung SM-G996B<button style="margin-left:36px;" class="btn btn-warning" data-toggle="modal" type="button">Logout</button></p>
+<table>
+{% for email in users_list %}
+    <tr>
+        <td>
 
+
+<p><img src="../../static/img/location.png" width="1.5%">{{email['location']}}</p>
+<p><span style="color:green;">The log in time is: {{email['login_time']}}</span>, The connected devices ip address is : {{email['ipaddress']}}
+            </p>
+<p>The log out time is: {{email['logout_time']}}</p>
+<hr style="width:50<i class='fas fa-map-marker-alt' style='font-size:24px'></i> %;text-align:left;margin-left:0">
+
+        </td>
+    </tr>
+
+{% endfor %}
+</table>
 
 {% endblock %}

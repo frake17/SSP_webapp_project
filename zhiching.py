@@ -1037,7 +1037,7 @@ def DeliverymenProfile():
     return render_template('DeliverymenProfile.html', users_list=Deliverymen_list, email=email)
 
 
-@qing.route('/disable/<int:id>/',methods=['POST'])
+@qing.route('/disable/<int:id>/',methods=['POST'])  # SSP CODE DONE BY ZHICHING
 def disable(id):
     staffStatus = session.get('staffStatus')
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
@@ -1071,3 +1071,18 @@ def disable(id):
         account = cursor.fetchone()
 
     return redirect(url_for('qing.Display_Staff'))
+
+
+@qing.route('/loginActivity(Staff)', methods=['POST','GET']) # SSP CODE DONE BY ZHICHING
+def loginActivity():
+    users_list = []
+    fname = session.get('fname')
+    lname = session.get('lname')
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute("SELECT * FROM StaffLoginActivity WHERE fname = %s and lname = %s", (fname, lname))
+    account = cursor.fetchone()
+    while account is not None:
+        users_list.append(account)
+        account = cursor.fetchone()
+    print(users_list)
+    return render_template('loginActivity(cust).html',users_list = users_list)
