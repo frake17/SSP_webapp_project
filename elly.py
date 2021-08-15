@@ -242,7 +242,7 @@ def signup_confirmation():
     last_name = session['lname']
     status = session.get('code_sent', False)
     conformation_code = session.get('code')
-    print(conformation_code)
+    print('The code is ', conformation_code)
     if request.method == 'POST' and status == True:
         date = session.get('date')
         Changed_time = date + time_change
@@ -464,6 +464,7 @@ def login():
                         phonenum_key = row['phone_num_key']
                         phonenum_f = Fernet(phonenum_key)
                         phone_num = phonenum_f.decrypt(row['phone_num'].encode())
+                        phone_num = phone_num.decode('utf-8')
                         session['phone_num'] = phone_num
 
                     if email.lower() == staff_decryptedEmail.lower():
@@ -551,6 +552,7 @@ def login():
                 data = res.json()
                 location = data['city']
                 ipaddress = data['ip']
+                id = session.get('id')
                 fname = session.get('fname')
                 lname = session.get('lname')
                 logout_time = '2021-08-08'
@@ -563,14 +565,14 @@ def login():
                                    (fname, lname, login_time, location, ipaddress, logout_time))
                     mysql.connection.commit()
                 elif pre_role == 'Staff' or pre_role == 'Deliveryman' or pre_role == 'HR':
-                    if pre_role == 'Customer':
-                        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-                        login_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        session['ipaddress'] = ipaddress
-                        session['login_time'] = login_time
-                        cursor.execute('INSERT INTO StaffLoginActivity VALUES (NULL, %s, %s, %s, %s, %s, %s)',
-                                       (fname, lname, login_time, location, ipaddress, logout_time))
-                        mysql.connection.commit()
+                    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                    login_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    session['ipaddress'] = ipaddress
+                    session['login_time'] = login_time
+                    cursor.execute('INSERT INTO StaffLoginActivity VALUES (NULL, %s, %s, %s, %s, %s, %s)',
+                                   (fname, lname, login_time, location, ipaddress, logout_time))
+                    cursor.execute('UPDATE Staff SET latestlogin = %s WHERE StaffID = %s',(login_time, id))
+                    mysql.connection.commit()
                 return redirect(url_for('alicia.authenticate'))
 
     return render_template('login.html', msg=msg)

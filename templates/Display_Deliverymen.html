@@ -68,8 +68,8 @@
             <th>Outlet</th>
             <th>Regions in charged</th>
             <th>Remarks</th>
-            <th>Orders</th>
             <th>Status</th>
+            <th>Order</th>
             <th>Disable</th>
             <th>Update</th>
             <th>Delete</th>
@@ -103,6 +103,9 @@
             {{ users_list.get(email)['remarks'] }}
             {% endif %}
             </td>
+            <td>
+                <p>The last log in time for this user is {{users_list.get(email)['latestlogin']}}</p>
+            </td>
             <td>{% if users_list.get(email)['role'] == 'Deliveryman' %}
                 <a href="/ordersAssigned/{{users_list.get(email)['StaffID']}}">
                     <form action="{{url_for('qing.Display_Staff', id=users_list.get(email)['StaffID'], sort='None')}}" method="POST">
@@ -115,9 +118,6 @@
                 {% else %}
                 N.A
                 {% endif %}
-            </td>
-            <td>
-                <p>The last log in time for this user is {{email['login_time']}}</p>
             </td>
             <td>
                 {% if users_list.get(email)['role'] == 'HR' %}

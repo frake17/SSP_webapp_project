@@ -24,6 +24,7 @@
             <th>Contact Number</th>
             <th>Regions in charged</th>
             <th></th>
+            <th></th>
         </tr>
         </thead>
         {% for account in users_list %}
@@ -33,9 +34,10 @@
             <td>{{ account['lname'] }}</td>
             <td>{{ account['gender'] }}</td>
             <td>{{ email }}</td>
-            <td>{{ account['phone_num'] }}</td>
+            <td>{{ phone_num }}</td>
             <td>{{ account['region']}}</td>
-            <td><a class="btn btn-warning" href="/deliverymen_update_profile/{{user.get_Deliverymen_id()}}">Update</a></td>
+            <td><a class="btn btn-warning" href="/deliverymen_update_profile/{{account['StaffID']}}">Update</a></td>
+            <td><a class="btn btn-warning" href="/loginActivity(Staff)">Login activity</a></td>
         </tr>
         {% endfor %}
     </table>

@@ -312,7 +312,7 @@ def Create_Deliverymen():
             Staffstatus = 'enabled'
 
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-            cursor.execute('INSERT INTO staff VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+            cursor.execute('INSERT INTO staff VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s ,NULL, NULL)',
                            (staffid, first_name, last_name, gender, encryptedEmail, role, outlet, 'NULL', region,
                             hash_password, encrypted_phone, remarks, key, phone_num_key, Staffstatus))
             mysql.connection.commit()
@@ -361,116 +361,67 @@ def Display_Staff(sort, id):
         if sort == 'Staff':
             if account:
                 if account['role'] == 'Staff':
-                    # Decrypt Email
-                    # Extract the Symmetric-key from Accounts DB
                     key = account['symmetrickey']
-                    # Load the key
                     f = Fernet(key)
-                    # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
-                    # using.encode()
                     decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
-                    # call .decode () to convert from Binary to String – to be displayed in Home.html.
                     decryptedEmail = decryptedEmail_Binary.decode()
                     users_list[decryptedEmail] = account
         elif sort == 'Manager':
             if account:
                 if account['role'] == 'Manager':
-                    # Decrypt Email
-                    # Extract the Symmetric-key from Accounts DB
                     key = account['symmetrickey']
-                    # Load the key
                     f = Fernet(key)
-                    # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
-                    # using.encode()
                     decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
-                    # call .decode () to convert from Binary to String – to be displayed in Home.html.
                     decryptedEmail = decryptedEmail_Binary.decode()
                     users_list[decryptedEmail] = account
         elif sort == 'Deliverymen':
             if account:
                 if account['role'] == 'Deliverymen':
-                    # Decrypt Email
-                    # Extract the Symmetric-key from Accounts DB
                     key = account['symmetrickey']
-                    # Load the key
                     f = Fernet(key)
-                    # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
-                    # using.encode()
                     decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
-                    # call .decode () to convert from Binary to String – to be displayed in Home.html.
                     decryptedEmail = decryptedEmail_Binary.decode()
                     users_list[decryptedEmail] = account
         elif sort == 'North':
             if account:
                 if account['region'] == 'North':
-                    # Decrypt Email
-                    # Extract the Symmetric-key from Accounts DB
                     key = account['symmetrickey']
-                    # Load the key
                     f = Fernet(key)
-                    # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
-                    # using.encode()
                     decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
-                    # call .decode () to convert from Binary to String – to be displayed in Home.html.
                     decryptedEmail = decryptedEmail_Binary.decode()
                     users_list[decryptedEmail] = account
         elif sort == 'South':
             if account:
                 if account['region'] == 'South':
-                    # Decrypt Email
-                    # Extract the Symmetric-key from Accounts DB
                     key = account['symmetrickey']
-                    # Load the key
                     f = Fernet(key)
-                    # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
-                    # using.encode()
                     decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
-                    # call .decode () to convert from Binary to String – to be displayed in Home.html.
                     decryptedEmail = decryptedEmail_Binary.decode()
                     users_list[decryptedEmail] = account
         elif sort == 'East':
             if account:
                 if account['region'] == 'East':
-                    # Decrypt Email
-                    # Extract the Symmetric-key from Accounts DB
                     key = account['symmetrickey']
-                    # Load the key
                     f = Fernet(key)
-                    # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
-                    # using.encode()
                     decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
-                    # call .decode () to convert from Binary to String – to be displayed in Home.html.
                     decryptedEmail = decryptedEmail_Binary.decode()
                     users_list[decryptedEmail] = account
         elif sort == 'West':
             if account:
                 if account['region'] == 'West':
-                    # Decrypt Email
-                    # Extract the Symmetric-key from Accounts DB
                     key = account['symmetrickey']
-                    # Load the key
                     f = Fernet(key)
-                    # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
-                    # using.encode()
                     decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
-                    # call .decode () to convert from Binary to String – to be displayed in Home.html.
                     decryptedEmail = decryptedEmail_Binary.decode()
                     users_list[decryptedEmail] = account
         else:
             if account['role'] != 'HR':
-                print(account)
-                # Decrypt Email
-                # Extract the Symmetric-key from Accounts DB
                 key = account['symmetrickey']
                 phone_num_key = account['phone_num_key']
-                # Load the key
                 f = Fernet(key)
                 f_phone = Fernet(phone_num_key)
-                # Call f.decrypt() to decrypt the data. Convert data from Database to bytes/binary by
-                # using.encode()
                 decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
                 decryptedPhone_Binary = f_phone.decrypt(account['phone_num'].encode())
-                # call .decode () to convert from Binary to String – to be displayed in Home.html.
                 decryptedEmail = decryptedEmail_Binary.decode()
                 decryptedPhone = decryptedPhone_Binary.decode()
                 users_list[decryptedEmail] = account
@@ -1027,14 +978,20 @@ def DeliverymenProfile():
     Deliverymen_list = []
     cursor.execute('Select * From Staff Where role = "Deliveryman"')
     account = cursor.fetchone()
-    if account:
-        key = account['symmetrickey']
-        f = Fernet(key)
-        decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
-        decryptedEmail = decryptedEmail_Binary.decode()
-        if decryptedEmail == email:
-            Deliverymen_list.append(account)
-    return render_template('DeliverymenProfile.html', users_list=Deliverymen_list, email=email)
+    while account is not None:
+        if account:
+            key = account['symmetrickey']
+            f = Fernet(key)
+            decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+            decryptedEmail = decryptedEmail_Binary.decode()
+            phonenum_key = account['phone_num_key']
+            phonenum_f = Fernet(phonenum_key)
+            phone_num = phonenum_f.decrypt(account['phone_num'].encode())
+            phone_num = phone_num.decode('utf-8')
+            if decryptedEmail == email:
+                Deliverymen_list.append(account)
+        account = cursor.fetchone()
+    return render_template('DeliverymenProfile.html', users_list=Deliverymen_list, email=email, phone_num=phone_num)
 
 
 @qing.route('/disable/<int:id>/',methods=['POST'])  # SSP CODE DONE BY ZHICHING
@@ -1084,5 +1041,4 @@ def loginActivity():
     while account is not None:
         users_list.append(account)
         account = cursor.fetchone()
-    print(users_list)
     return render_template('loginActivity(cust).html',users_list = users_list)
