@@ -9,15 +9,16 @@
     <div class="imgcontainer">
         <img src="static/img/login.png" alt="Logo" class="logo">
     </div>
-
     <div class="container">
-        <label for="email"><br>Email<br></label>
-        <input type="text" placeholder="Enter your Email" name="email" required>
+        <div class="msg">{{ msg }}</div>
+        <label for="email"><br>Email</br></label>
+        <input type="text" placeholder="Enter your email" name="email" id="email" required>
 
-        <label for="passwd"><br>Password<br></label>
-        <input type="password" placeholder="Enter your password" name="passwd" required>
-        <span class="forgot_pw"><a href="/findEmail">Forgot password?</a></span>
-        <button type="Submit" name="btn" value="login_btn">Login</button>
+        <label for="passwd"><br>Password</br></label>
+        <input type="password" placeholder="Enter your password" name="passwd" id="passwd" required>
+        <span class="forgot_pw"><a href="#">Forgot password?</a></span>
+
+        <button class="login_btn" type="Submit" name="btn" value="login_btn">Login</button>
     </div>
 </form>
 

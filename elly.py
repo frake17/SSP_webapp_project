@@ -338,9 +338,12 @@ def delete_user(email):
 def login():
     msg = ''
     acct_exist = False
+    pw_match = False
+
     if request.method == "POST" and 'email' in request.form and 'passwd' in request.form:
         email = request.form['email']
         passwd = request.form['passwd']
+
         # Check if account is in customers database
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM Customers')
@@ -350,118 +353,217 @@ def login():
         while i < len(cust_acct):
             for row in cust_acct:
                 i += 1
+                id = row['id']
                 cust_key = row['symmetrickey']  # symmetrickey
                 cust_f = Fernet(cust_key)
                 cust_decryptedEmail_Binary = cust_f.decrypt(row['encrypted_email'].encode())  # encrypted_email
                 cust_decryptedEmail = cust_decryptedEmail_Binary.decode()
 
+                if not row['Phone_num'] is None:
+                    phonenum_key = row['Phone_num_key']
+                    phonenum_f = Fernet(phonenum_key)
+                    phone_num = phonenum_f.decrypt(row['Phone_num'].encode())
+                    session['phone_num'] = phone_num
+
                 if email.lower() == cust_decryptedEmail.lower():
                     print("Account exist in database")
+                    acct_exist = True
 
-                    # Check if password is correct
-                    cust_hashAndSalt = row['hashed_password']  # hashed_password
-                    if bcrypt.checkpw(passwd.encode(), cust_hashAndSalt.encode()):
-                        session['loggedin'] = True
-                        session['email'] = cust_decryptedEmail.lower()
-                        session['fname'] = row['fname']
-                        session['lname'] = row['lname']
-                        session['pre_role'] = 'Customer'
-                        print("Password is correct")
-                        acct_exist = True
+                    #If user has 3 failed attempts
+                    failedAttempts = row['no_of_failed_attempts']
 
-                        res = requests.get("https://ipinfo.io/")
-                        data = res.json()
-                        location = data['city']
-                        ipaddress = data['ip']
-                        fname = row['fname']
-                        lname = row['lname']
-                        logout_time = '2021-08-08'
-                        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-                        login_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        session['ipaddress'] = ipaddress
-                        session['login_time'] = login_time
-                        cursor.execute('INSERT INTO CustomerLoginActivity VALUES (NULL, %s, %s, %s, %s, %s, %s)',
-                                       (fname, lname, login_time, location, ipaddress, logout_time))
-                        mysql.connection.commit()
-
-                        break
-
-                    else:
-                        msg = 'Wrong email / password entered'
-                        print("Wrong password")
-                        break
-
-        # Check if account is in staff database
-        else:
-            cursor.execute('SELECT * FROM staff')
-            staff_acct = cursor.fetchall()
-            k = 0
-
-            while k < len(staff_acct):
-                for row in staff_acct:
-                    k += 1
-                    staff_key = row['symmetrickey']  # symmetrickey
-                    staff_f = Fernet(staff_key)
-                    staff_decryptedEmail_Binary = staff_f.decrypt(row['encrypted_email'].encode())  # encrypted_email
-                    staff_decryptedEmail = staff_decryptedEmail_Binary.decode()
-                    print(staff_decryptedEmail)
-
-                    if email.lower() == staff_decryptedEmail.lower():
-                        print("Account exist in database")
-
-                        # Check if password is correct
-                        staff_hashAndSalt = row['hashed_password']  # hashed_password
-                        if bcrypt.checkpw(passwd.encode(), staff_hashAndSalt.encode()):
+                    if failedAttempts == None or failedAttempts < 3:
+                        cust_hashAndSalt = row['hashed_password']
+                        if bcrypt.checkpw(passwd.encode(), cust_hashAndSalt.encode()):
                             session['loggedin'] = True
-                            session['email'] = staff_decryptedEmail.lower()
+                            session['email'] = cust_decryptedEmail.lower()
+                            session['fname'] = row['fname']
+                            session['lname'] = row['lname']
+                            session['id'] = row['id']
+                            session['pre_role'] = 'Customer'
                             print("Password is correct")
-                            acct_exist = True
-
-                            role = row['role']
-                            session['pre_role'] = role
-                            print('pre role: ', session['pre_role'])
-
-                            res = requests.get("https://ipinfo.io/")
-                            data = res.json()
-                            location = data['city']
-                            ipaddress = data['ip']
-                            fname = row['fname']
-                            lname = row['lname']
-                            logout_time = '2021-08-08'
-                            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-                            login_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            session['ipaddress'] = ipaddress
-                            session['login_time'] = login_time
-                            cursor.execute('INSERT INTO StaffLoginActivity VALUES (NULL, %s, %s, %s, %s, %s, %s)',
-                                           (fname, lname, login_time, location, ipaddress, logout_time))
-                            mysql.connection.commit()
+                            pw_match = True
                             break
 
                         else:
                             msg = 'Wrong email / password entered'
+                            pw_match = False
                             print("Wrong password")
+                            if failedAttempts == None:
+                                failedAttempts = 1
+
+                            elif failedAttempts < 3:
+                                failedAttempts += 1
+                            cursor.execute('UPDATE customers SET no_of_failed_attempts=%s WHERE id=%s', (failedAttempts, id))
+                            mysql.connection.commit()
                             break
 
-        if acct_exist == False:
-            msg = 'Wrong email / password entered'
-            print("Account does not exist in database")
+                    # If user fails to login 3 times, need to wait 15 minutes
+                    elif failedAttempts == 3:
+                        reattemptDuration = timedelta(minutes=15)
+                        reattemptTime = datetime.now() + reattemptDuration
+                        session['reattemptTime'] = reattemptTime
+                        time_format = session.get('reattemptTime').strftime('%H:%M')
+                        msg = 'You have more than 3 failed attempts, please wait until %s to retry' % time_format
+                        failedAttempts += 1
+                        cursor.execute('UPDATE customers SET no_of_failed_attempts=%s WHERE id=%s',
+                                       (failedAttempts, id))
+                        mysql.connection.commit()
 
-        # Create the authentication code
-        elif acct_exist == True:
-            gen_auth_code = randint(100000, 999999)
-            session['gen_auth_code'] = gen_auth_code
+                    elif failedAttempts > 3 and ('reattemptTime' in session):
+                        if datetime.now() > session.get('reattemptTime'):
+                            cust_hashAndSalt = row['hashed_password']
+                            if bcrypt.checkpw(passwd.encode(), cust_hashAndSalt.encode()):
+                                session['loggedin'] = True
+                                session['email'] = cust_decryptedEmail.lower()
+                                session['fname'] = row['fname']
+                                session['lname'] = row['lname']
+                                session['pre_role'] = 'Customer'
+                                session['id'] = row['id']
+                                print("Password is correct")
+                                pw_match = True
+                                break
 
-            # Send authentication code to email
-            content = Message('Sheng Siong Supermarket Login', sender='smtp.gmail.com', recipients=[email])
-            content.body = "Your login authentication code is %d" % gen_auth_code
-            mail.send(content)
+                            else:
+                                msg = 'Wrong email / password entered'
+                                pw_match = False
+                                failedAttempts += 1
+                                cursor.execute('UPDATE customers SET no_of_failed_attempts=%s WHERE id=%s', (failedAttempts, id))
+                                mysql.connection.commit()
+                                reattemptDuration = timedelta(minutes=15)
+                                reattemptTime = datetime.now() + reattemptDuration
+                                session['reattemptTime'] = reattemptTime
+                                time_format = session.get('reattemptTime').strftime('%H:%M')
+                                msg = 'You have more than 3 failed attempts, please wait until %s to retry' % time_format
+                                break
 
-            time_start = datetime.now()
-            duration = timedelta(minutes=3)
-            expire_time = time_start + duration
-            session['expire_time'] = expire_time
+                        else:
+                            reattemptTime = session.get('reattemptTime')
+                            time_format = session.get('reattemptTime').strftime('%H:%M')
+                            msg = 'Please wait until %s to retry' % time_format
 
-            return redirect(url_for('alicia.authenticate'))
+            # Check if account is in staff database
+            else:
+                cursor.execute('SELECT * FROM staff')
+                staff_acct = cursor.fetchall()
+                k = 0
+
+                while k < len(staff_acct) and session.get('pre_role') != 'Customer':
+                    for row in staff_acct:
+                        k += 1
+                        id = row['StaffID']
+                        staff_key = row['symmetrickey']  # symmetrickey
+                        staff_f = Fernet(staff_key)
+                        staff_decryptedEmail_Binary = staff_f.decrypt(row['encrypted_email'].encode())  # encrypted_email
+                        staff_decryptedEmail = staff_decryptedEmail_Binary.decode()
+
+                        if not row['phone_num'] is None:
+                            phonenum_key = row['phone_num_key']
+                            phonenum_f = Fernet(phonenum_key)
+                            phone_num = phonenum_f.decrypt(row['phone_num'].encode())
+                            session['phone_num'] = phone_num
+
+                        if email.lower() == staff_decryptedEmail.lower():
+                            print("Account exist in database")
+                            failedAttempts = row['no_of_failed_attempts']
+                            acct_exist = True
+
+                            if row['staffStatus'] == 'disabled':
+                                msg = 'Your account has been disabled'
+
+                            elif failedAttempts == None or failedAttempts < 3:
+                                staff_hashAndSalt = row['hashed_password']
+                                if bcrypt.checkpw(passwd.encode(), staff_hashAndSalt.encode()):
+                                    session['loggedin'] = True
+                                    session['email'] = staff_decryptedEmail.lower()
+                                    role = row['role']
+                                    session['pre_role'] = role
+                                    session['id'] = row['id']
+                                    print("Password is correct")
+                                    pw_match = True
+                                    break
+
+                                else:
+                                    msg = 'Wrong email / password entered'
+                                    pw_match = False
+                                    print("Wrong password")
+
+                                    if failedAttempts == None:
+                                        failedAttempts = 1
+
+                                    elif failedAttempts < 3:
+                                        failedAttempts += 1
+
+                                    cursor.execute('UPDATE staff SET no_of_failed_attempts=%s WHERE id=%s', (failedAttempts, id))
+                                    mysql.connection.commit()
+                                    break
+
+                            elif failedAttempts == 3:
+                                reattemptDuration = timedelta(minutes=15)
+                                reattemptTime = datetime.now() + reattemptDuration
+                                session['reattemptTime'] = reattemptTime
+                                time_format = session.get('reattemptTime').strftime('%H:%M')
+                                msg = 'You have more than 3 failed attempts, please wait until %s to retry' % time_format
+
+                            elif failedAttempts > 3 and 'reattemptTime' in session:
+                                if datetime.now() > session.get('reattemptTime'):
+                                    staff_hashAndSalt = row['hashed_password']
+                                    if bcrypt.checkpw(passwd.encode(), staff_hashAndSalt.encode()):
+                                        session['loggedin'] = True
+                                        session['email'] = staff_decryptedEmail.lower()
+                                        role = row['role']
+                                        session['pre_role'] = role
+                                        session['id'] = row['id']
+                                        print("Password is correct")
+                                        pw_match = True
+                                        break
+
+                                    else:
+                                        msg = 'Wrong email / password entered'
+                                        print("Wrong password")
+                                        pw_match = False
+                                        failedAttempts += 1
+                                        cursor.execute('UPDATE staff SET no_of_failed_attempts=%s WHERE id=%s', (failedAttempts, id))
+                                        mysql.connection.commit()
+                                        reattemptDuration = timedelta(minutes=15)
+                                        reattemptTime = datetime.now() + reattemptDuration
+                                        session['reattemptTime'] = reattemptTime
+                                        time_format = session.get('reattemptTime').strftime('%H:%M')
+                                        msg = 'You have more than 3 failed attempts, please wait until %s to retry' % time_format
+                                        break
+
+            if acct_exist == False:
+                msg = 'Wrong email / password entered'
+                print("Account does not exist in database")
+
+            # Create the authentication code
+            elif acct_exist == True and pw_match == True:
+                pre_role = session.get('pre_role')
+                res = requests.get("https://ipinfo.io/")
+                data = res.json()
+                location = data['city']
+                ipaddress = data['ip']
+                fname = session.get('fname')
+                lname = session.get('lname')
+                logout_time = '2021-08-08'
+                if pre_role == 'Customer':
+                    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                    login_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    session['ipaddress'] = ipaddress
+                    session['login_time'] = login_time
+                    cursor.execute('INSERT INTO CustomerLoginActivity VALUES (NULL, %s, %s, %s, %s, %s, %s)',
+                                   (fname, lname, login_time, location, ipaddress, logout_time))
+                    mysql.connection.commit()
+                elif pre_role == 'Staff' or pre_role == 'Deliveryman' or pre_role == 'HR':
+                    if pre_role == 'Customer':
+                        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+                        login_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        session['ipaddress'] = ipaddress
+                        session['login_time'] = login_time
+                        cursor.execute('INSERT INTO StaffLoginActivity VALUES (NULL, %s, %s, %s, %s, %s, %s)',
+                                       (fname, lname, login_time, location, ipaddress, logout_time))
+                        mysql.connection.commit()
+                return redirect(url_for('alicia.authenticate'))
 
     return render_template('login.html', msg=msg)
 

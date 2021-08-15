@@ -163,7 +163,7 @@ class Supplier(Form):
             raise ValidationError('Only digits are allowed')
 
 
-class recaptcha_form(Form): # SSP CODE DONE BY KIN
+class recaptcha_form(Form):  # SSP CODE DONE BY KIN
     recaptcha = RecaptchaField()
 
 
@@ -174,7 +174,8 @@ class SignUp(Form):  # SSP CODE DONE BY KIN
     password = PasswordField('Password', [validators.DataRequired(), validators.EqualTo('confirm_password')])
     confirm_password = PasswordField('Confirm Password', [validators.DataRequired(), validators.EqualTo('password')])
     security_question = SelectField('Security question', [validators.DataRequired()],
-                                    choices=[('1', 'What is your favorite number? '), ('2', 'option 2'), ('3', 'option 3')]
+                                    choices=[('1', 'What is your favorite number? '), ('2', 'option 2'),
+                                             ('3', 'option 3')]
                                     )
     security_answer = StringField('Security answers', [validators.DataRequired()])
     submit = SubmitField('Sign Up')
@@ -234,7 +235,8 @@ class FindEmail(Form):  # SSP CODE DONE BY ELLY
 class PwSecurity(Form):  # SSP CODE DONE BY ELLY
     security_answer = StringField('Security answers', [validators.DataRequired()])
     security_question = SelectField('Security question', [validators.DataRequired()],
-                                    choices=[('1', 'What is your favorite number? '), ('2', 'option 2'), ('3', 'option 3')]
+                                    choices=[('1', 'What is your favorite number? '), ('2', 'option 2'),
+                                             ('3', 'option 3')]
                                     )
 
 
@@ -334,6 +336,7 @@ class CreateStaff(Form):
         if not special_characters:
             raise ValidationError('Password must contain at least 1 special character')
 
+
 class deliverymen_profile_update(Form):
     first_name = StringField('First Name :', [validators.Length(min=1, max=150), validators.DataRequired()])
     last_name = StringField('Last Name :', [validators.Length(min=1, max=150), validators.DataRequired()])
@@ -415,3 +418,7 @@ class SearchUserForm(Form):
             raise ValidationError("IC must end with an alphabet")
         if len(search_cust.data) != 9:
             raise ValidationError("Length of IC must be 9 characters")
+
+
+class AuthenticateLogin(Form):
+    auth_code = IntegerField('Authentication Code', [validators.DataRequired()])

@@ -2,20 +2,29 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="static/css/login.css">
+<link rel="stylesheet" href="/static/css/login.css">
 
 
 <form method="POST" action="">
     <div class="imgcontainer">
-        <img src="static/img/login.png" alt="Logo" class="logo">
+        <img src="/static/img/login.png" alt="Logo" class="logo">
     </div>
-
     <div class="container">
-        <label for="authenticate"><br>Authentication Code</br></label>
-        <input type="text" placeholder="Enter code sent to email" name="authenticate" required>
-        <span class="authenticate"><a href="#">Resend code to your email if you have not received it</a></span>
+        <div class="msg">{{ msg }}</div>
+        <button type="Submit" class='top_buttons' name="authEmail" value="authEmail">Send through Email</button>
+        <button type="Submit" class='top_buttons' name="authSMS" value="authSMS">Send through SMS</button>
+    </div>
+    <div class="container">
+        <label for="auth_code"><br>Authentication Code</br></label>
+        {% if session.get('sendAuth') == True %}
+        <input type="text" placeholder="Enter code sent to email" name="auth_code" class="auth_code" required>
+        <button type="Submit" class='submit_auth' name="submit_auth" value="submit_auth">Authenticate</button>
+        {% else %}
+        <input type="text" placeholder="Enter code sent to email" name="auth_code" class="auth_code" disabled>
+        <button type="Submit" class='submit_auth' name="submit_auth" value="submit_auth" disabled>Authenticate</button>
+        {% endif %}
 
-        <button type="Submit">Authenticate</button>
+        <span class="resend_auth"><a href="#">Resend code to your email if you have not received it</a></span>
     </div>
 </form>
 

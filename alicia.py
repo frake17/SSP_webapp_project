@@ -1,11 +1,16 @@
+from url_jumping import check_role
 import shelve
 
 from flask import Flask, render_template, request, redirect, url_for, session, Blueprint
-
+import MySQLdb.cursors
+from flask_mysqldb import MySQL
+from flask_mail import Mail, Message
+from random import randint
+from datetime import datetime, timedelta
+from datetime import timedelta, time
+from twilio.rest import Client
 import User
-from Forms import CreateUserForm, SearchUserForm
-from datetime import datetime
-from url_jumping import check_role
+from Forms import CreateUserForm, SearchUserForm, AuthenticateLogin
 
 UPLOAD_FOLDER = 'static/img/uploaded'
 ALLOWED_EXTENSIONS = {'png'}
@@ -15,6 +20,12 @@ alicia.secret_key = 'any_random_string'
 alicia.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 alicia.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 alicia.config["SESSION_PERMANENT"] = False
+alicia.config['MYSQL_HOST'] = 'localhost'
+alicia.config['MYSQL_USER'] = 'root'
+alicia.config['MYSQL_PASSWORD'] = '100carbook'
+alicia.config['MYSQL_DB'] = 'pythonlogin'
+mysql = MySQL(alicia)
+mail = Mail(alicia)
 alicia = Blueprint('alicia', __name__, template_folder='templates')
 
 
@@ -212,40 +223,92 @@ def temp_chart():
 
 @alicia.route("/authenticate", methods=['GET', 'POST'])  # SSP CODES DONE BY ALICIA
 def authenticate():
-    msg = ''
-    expire_time = session.get('expire_time')
-    print("auth code expire time: ", str(expire_time))
-    msg = 'Your authentication code will expire at %s' % str(expire_time)
+    session.pop('reattemptTime', None)
+    id = session.get('id')
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute('UPDATE customers SET no_of_failed_attempts=NULL WHERE id=%s', id)
+    mysql.connection.commit()
 
-    gen_auth_code = session.get('gen_auth_code')
-    print("auth code: ", gen_auth_code)
+    msg = ''
 
     if request.method == "POST":
-        enter_code = int(request.form['authenticate'])
-        time_click = datetime.now()
-        print('time click auth: ', str(time_click))
-        if time_click.replace(tzinfo=None) > expire_time.replace(tzinfo=None):
-            print("Authentication code expired")
-            msg = 'Your authentication code has expired, please login again'
-            return redirect(url_for('elly.login'))
+        # Send authentication code to email
 
-        else:
-            if enter_code == gen_auth_code:
-                print("Success")
+        if request.form.get('authEmail'):
+            gen_auth_code = randint(100000, 999999)
+            session['gen_auth_code'] = gen_auth_code
+            email = session.get('email')
+            content = Message('Sheng Siong Supermarket Login', sender='smtp.gmail.com', recipients=[email])
+            content.body = "Your login authentication code is %d" % gen_auth_code
+            mail.send(content)
 
-                role = session.get('pre_role')
-                session['role'] = role
+            session['sendAuth'] = True
 
-                return redirect(url_for('home'))
+            time_start = datetime.now()
+            duration = timedelta(minutes=3)
+            expire_time = time_start + duration
+            session['expire_time'] = expire_time
+            time_format = expire_time.strftime('%H:%M')
+            msg = 'Your authentication code will expire at %s' % time_format
+
+        # Send authentication code to SMS
+        elif request.form.get('authSMS'):
+            gen_auth_code = randint(100000, 999999)
+            session['gen_auth_code'] = gen_auth_code
+            account_sid = 'ACd79f39ac30b9742e43c153ea68a04918'
+            auth_token = '40520b503bb15b03ab4e71093eb084b3'
+            client = Client(account_sid, auth_token)
+            phone_num = str(session.get('phone_num'))
+            conformation_code = randint(000000, 999999)
+            current_time = datetime.now().replace(tzinfo=None)
+
+            message = client.messages \
+                .create(
+                body="Your login authentication code is %d" % gen_auth_code,
+                from_='+19044743219',
+                to='+65' + phone_num
+                #to='+65' + '87188040'
+            )
+
+            print(message.sid)
+            session['sendAuth'] = True
+
+            time_start = datetime.now()
+            duration = timedelta(minutes=3)
+            expire_time = time_start + duration
+            session['expire_time'] = expire_time
+            time_format = expire_time.strftime('%H:%M')
+            msg = 'Your authentication code will expire at %s' % time_format
+
+        elif request.form.get('submit_auth'):
+            enter_code = int(request.form['auth_code'])
+            time_click = datetime.now()
+            if time_click > session.get('expire_time'):
+                print("Authentication code expired")
+                msg = 'Your authentication code has expired, please login again'
+                return redirect(url_for('alicia.login'))
 
             else:
-                msg = 'You have entered an invalid authentication code'
-                print("Wrong auth code")
-                return redirect(url_for('elly.login'))
+                print("Auth code:", session.get('gen_auth_code'))
+                print("Entered code:", enter_code)
+                if enter_code == session.get('gen_auth_code'):
+                    print("Success")
 
-    session.pop('auth_code', None)
+                    role = session.get('pre_role')
+                    session['role'] = role
+                    session.pop('expire_time', None)
+                    session.pop('gen_auth_code', None)
+                    session.pop('sendAuth', None)
+                    return redirect(url_for('home'))
 
-    return render_template('authenticate.html', msg=msg)
+                else:
+                    msg = 'You have entered an invalid authentication code'
+                    print("Wrong auth code")
+                    session.pop('expire_time', None)
+                    session.pop('gen_auth_code', None)
+                    session.pop('sendAuth', None)
+                    return redirect(url_for('alicia.login'))
 
+    return render_template('authenticate.html', msg=msg, form=AuthenticateLogin)
 
 

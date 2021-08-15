@@ -3,7 +3,7 @@ body {
     vertical-align: middle;
 }
 
-input[name="username"], input[name="passwd"], input[name="authenticate"], input[name = 'email'] {
+input[name="username"], input[name="passwd"], input[name="authenticate"], input[name = 'email'] input[name="auth_code"]{
     width: 100%;
     padding: 12px 20px;
     margin: 4px 0;
@@ -20,6 +20,34 @@ button {
 
 button:hover {
     opacity: 0.75;
+}
+
+.login_btn {
+    width: 100%;
+    padding: 14px 14px;
+    margin: 30px 0;
+    border: none;
+}
+
+.submit_auth {
+    width: 100%;
+    padding: 14px 14px;
+    margin: 30px 0;
+    border: none;
+}
+
+#signup {
+    width: 100%;
+    padding: 14px 14px;
+    margin: 30px 0;
+    border: none;
+}
+
+.top_buttons {
+    width: 100%;
+    padding: 5px 5px;
+    margin: 5px 0;
+    border: none;
 }
 
 .imgcontainer {
