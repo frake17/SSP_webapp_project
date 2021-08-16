@@ -587,21 +587,23 @@ def findEmail():
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM Customers')
         account = cursor.fetchone()
-
-        if account:
-            key = account['symmetrickey']
-            f = Fernet(key)
-            decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
-            decryptedEmail = decryptedEmail_Binary.decode()
-            if decryptedEmail == email:
-                session['email'] = True
-                return redirect(url_for('elly.send_pwemail'))
+        while account is not None:
+            if account:
+                key = account['symmetrickey']
+                f = Fernet(key)
+                decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+                decryptedEmail = decryptedEmail_Binary.decode()
+                if decryptedEmail == email:
+                    session['EMAIL'] = email
+                    return redirect(url_for('elly.send_pwemail'))
+            account = cursor.fetchone()
     return render_template('findEmail(cust).html', msg='', form=find_email)
 
 
 @elly.route('/send_pwemail', methods=['GET', 'POST'])  # SSP CODE DONE BY ELLY
 def send_pwemail():
     email = session.get('EMAIL')
+    print(email)
     current_time = datetime.now()
     session['date'] = current_time
 
@@ -609,6 +611,7 @@ def send_pwemail():
     msg.body = 'Click link to update password' \
                ' http://127.0.0.1:5000/forgetPassword'
     mail.send(msg)
+    print('sent')
     session['link_sent'] = True
     session['email'] = True
     return redirect(url_for('elly.login'))
@@ -670,7 +673,7 @@ def profile():
             f = Fernet(key)
             decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
             decryptedEmail = decryptedEmail_Binary.decode()
-            if email == decryptedEmail:
+            if email.lower() == decryptedEmail.lower():
                 users_list[decryptedEmail] = account
             account = cursor.fetchone()
         return render_template('profile(customer).html', users_list=users_list)

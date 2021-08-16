@@ -265,7 +265,7 @@ def authenticate():
             auth_token = '40520b503bb15b03ab4e71093eb084b3'
             client = Client(account_sid, auth_token)
             phone_num = str(session.get('phone_num'))
-            print(gen_auth_code)
+            print('the code is:', gen_auth_code)
 
             message = client.messages \
                 .create(

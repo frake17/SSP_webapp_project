@@ -362,58 +362,93 @@ def Display_Staff(sort, id):
             if account:
                 if account['role'] == 'Staff':
                     key = account['symmetrickey']
+                    phone_num_key = account['phone_num_key']
                     f = Fernet(key)
+                    f_phone = Fernet(phone_num_key)
                     decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+                    decryptedPhone_Binary = f_phone.decrypt(account['phone_num'].encode())
                     decryptedEmail = decryptedEmail_Binary.decode()
+                    decryptedPhone = decryptedPhone_Binary.decode()
                     users_list[decryptedEmail] = account
+                    users_list.get(decryptedEmail)['phone_num'] = decryptedPhone
         elif sort == 'Manager':
             if account:
                 if account['role'] == 'Manager':
                     key = account['symmetrickey']
+                    phone_num_key = account['phone_num_key']
                     f = Fernet(key)
+                    f_phone = Fernet(phone_num_key)
                     decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+                    decryptedPhone_Binary = f_phone.decrypt(account['phone_num'].encode())
                     decryptedEmail = decryptedEmail_Binary.decode()
+                    decryptedPhone = decryptedPhone_Binary.decode()
                     users_list[decryptedEmail] = account
+                    users_list.get(decryptedEmail)['phone_num'] = decryptedPhone
         elif sort == 'Deliverymen':
             if account:
-                if account['role'] == 'Deliverymen':
+                if account['role'] == 'Deliveryman':
                     key = account['symmetrickey']
+                    phone_num_key = account['phone_num_key']
                     f = Fernet(key)
+                    f_phone = Fernet(phone_num_key)
                     decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+                    decryptedPhone_Binary = f_phone.decrypt(account['phone_num'].encode())
                     decryptedEmail = decryptedEmail_Binary.decode()
+                    decryptedPhone = decryptedPhone_Binary.decode()
                     users_list[decryptedEmail] = account
+                    users_list.get(decryptedEmail)['phone_num'] = decryptedPhone
         elif sort == 'North':
             if account:
                 if account['region'] == 'North':
                     key = account['symmetrickey']
+                    phone_num_key = account['phone_num_key']
                     f = Fernet(key)
+                    f_phone = Fernet(phone_num_key)
                     decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+                    decryptedPhone_Binary = f_phone.decrypt(account['phone_num'].encode())
                     decryptedEmail = decryptedEmail_Binary.decode()
+                    decryptedPhone = decryptedPhone_Binary.decode()
                     users_list[decryptedEmail] = account
+                    users_list.get(decryptedEmail)['phone_num'] = decryptedPhone
         elif sort == 'South':
             if account:
                 if account['region'] == 'South':
                     key = account['symmetrickey']
+                    phone_num_key = account['phone_num_key']
                     f = Fernet(key)
+                    f_phone = Fernet(phone_num_key)
                     decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+                    decryptedPhone_Binary = f_phone.decrypt(account['phone_num'].encode())
                     decryptedEmail = decryptedEmail_Binary.decode()
+                    decryptedPhone = decryptedPhone_Binary.decode()
                     users_list[decryptedEmail] = account
+                    users_list.get(decryptedEmail)['phone_num'] = decryptedPhone
         elif sort == 'East':
             if account:
                 if account['region'] == 'East':
                     key = account['symmetrickey']
+                    phone_num_key = account['phone_num_key']
                     f = Fernet(key)
+                    f_phone = Fernet(phone_num_key)
                     decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+                    decryptedPhone_Binary = f_phone.decrypt(account['phone_num'].encode())
                     decryptedEmail = decryptedEmail_Binary.decode()
+                    decryptedPhone = decryptedPhone_Binary.decode()
                     users_list[decryptedEmail] = account
+                    users_list.get(decryptedEmail)['phone_num'] = decryptedPhone
         elif sort == 'West':
             if account:
                 if account['region'] == 'West':
                     key = account['symmetrickey']
+                    phone_num_key = account['phone_num_key']
                     f = Fernet(key)
+                    f_phone = Fernet(phone_num_key)
                     decryptedEmail_Binary = f.decrypt(account['encrypted_email'].encode())
+                    decryptedPhone_Binary = f_phone.decrypt(account['phone_num'].encode())
                     decryptedEmail = decryptedEmail_Binary.decode()
+                    decryptedPhone = decryptedPhone_Binary.decode()
                     users_list[decryptedEmail] = account
+                    users_list.get(decryptedEmail)['phone_num'] = decryptedPhone
         else:
             if account['role'] != 'HR':
                 key = account['symmetrickey']
@@ -517,10 +552,13 @@ def delete_Deliverymen(id):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute("SELECT * FROM Staff")
     account = cursor.fetchone()
-    if account:
-        if account['StaffID'] == id:
-            cursor.execute('DELETE FROM Staff WHERE StaffID = %s', (id))
-            mysql.connection.commit()
+    while account is not None:
+        if account:
+            if account['StaffID'] == id:
+                cursor.execute('DELETE FROM Staff WHERE StaffID = %s', (id))
+                mysql.connection.commit()
+                return redirect(url_for('qing.Display_Staff'))
+        account = cursor.fetchone()
 
     return redirect(url_for('qing.Display_Staff'))
 
@@ -978,6 +1016,7 @@ def DeliverymenProfile():
     Deliverymen_list = []
     cursor.execute('Select * From Staff Where role = "Deliveryman"')
     account = cursor.fetchone()
+    print(account)
     while account is not None:
         if account:
             key = account['symmetrickey']

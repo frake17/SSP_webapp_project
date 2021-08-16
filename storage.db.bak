@@ -6,6 +6,6 @@
 'confirmed_collect', (4096, 597)
 'orders_delivery', (6144, 701)
 'confirmed_delivery', (7168, 697)
-'Deliverymen', (10240, 514)
-'Deliverymen_login', (8704, 115)
+'Deliverymen', (10240, 574)
+'Deliverymen_login', (8704, 190)
 'assignDeliverymen', (9216, 707)
