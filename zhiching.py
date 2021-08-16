@@ -993,7 +993,10 @@ def deliverymen_orders():
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     orders_list = []
     db = shelve.open('storage.db', 'r')
-    assign_orders = db['assignDeliverymen']
+    try:
+        assign_orders = db['assignDeliverymen']
+    except:
+        return redirect(url_for('home'))
     cursor.execute('Select * From Staff')
     account = cursor.fetchone()
     while account is not None:
