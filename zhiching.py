@@ -553,12 +553,11 @@ def delete_Deliverymen(id):
     cursor.execute("SELECT * FROM Staff")
     account = cursor.fetchone()
     while account is not None:
-        if account:
             if account['StaffID'] == id:
-                cursor.execute('DELETE FROM Staff WHERE StaffID = %s', (id))
+                cursor.execute('DELETE FROM Staff WHERE StaffID = %s', (id,))
                 mysql.connection.commit()
                 return redirect(url_for('qing.Display_Staff'))
-        account = cursor.fetchone()
+            account = cursor.fetchone()
 
     return redirect(url_for('qing.Display_Staff'))
 
@@ -1050,9 +1049,6 @@ def disable(id):
             mysql.connection.commit()
             print(account['staffStatus'])
 
-            return redirect(url_for('qing.Display_Staff'))
-
-
         else:
             if account['staffStatus'] == 'enabled':
                 cursor.execute(
@@ -1062,8 +1058,6 @@ def disable(id):
                     ))
                 mysql.connection.commit()
                 print(account['staffStatus'])
-
-                return redirect(url_for('qing.Display_Staff'))
         account = cursor.fetchone()
 
     return redirect(url_for('qing.Display_Staff'))

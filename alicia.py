@@ -241,7 +241,7 @@ def authenticate():
         if request.form.get('authEmail'):
             gen_auth_code = randint(100000, 999999)
             session['gen_auth_code'] = gen_auth_code
-            print(gen_auth_code)
+            print('code:', gen_auth_code)
             email = session.get('email')
             content = Message('Sheng Siong Supermarket Login', sender='smtp.gmail.com', recipients=[email])
             content.body = "Your login authentication code is %d" % gen_auth_code
@@ -265,7 +265,7 @@ def authenticate():
             auth_token = '40520b503bb15b03ab4e71093eb084b3'
             client = Client(account_sid, auth_token)
             phone_num = str(session.get('phone_num'))
-            print('the code is:', gen_auth_code)
+            print(gen_auth_code)
 
             message = client.messages \
                 .create(
