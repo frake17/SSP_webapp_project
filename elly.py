@@ -722,12 +722,15 @@ def pwSecurity():
     lname = session.get('lname')
     pwSecurity = PwSecurity(request.form)
     if 'email' in session:
+        print('work1')
         if request.method == 'POST' and pwSecurity.validate():
+            print('work2')
             security_answer = request.form['security_answer']
             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute('SELECT hashed_security_ans FROM Customers WHERE fname = %s and lname = %s', (fname, lname))
             account = cursor.fetchone()
             answer = account['hashed_security_ans']
+            print('work')
             if str(polynomialRollingHash(security_answer)) == str(answer):
                 return redirect(url_for('elly.update_password'))
     return render_template('updatepwSecurity.html', msg='', form=pwSecurity)
@@ -753,6 +756,7 @@ def update_password():
                 decryptedEmail = decryptedEmail_Binary.decode()
                 if email == decryptedEmail:
                     break
+                account = cursor.fetchone()
             fname = account['fname']
             lname = account['lname']
             salt = bcrypt.gensalt(rounds=16)

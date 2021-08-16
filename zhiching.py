@@ -1057,11 +1057,11 @@ def disable(id):
                 cursor.execute(
                     'UPDATE Staff SET staffStatus = %s WHERE StaffID = %s',
                     (
-                        "disabled", id
+                        'disabled', id
                     ))
                 mysql.connection.commit()
-                print(account['staffStatus'])
         account = cursor.fetchone()
+        print(account)
 
     return redirect(url_for('qing.Display_Staff'))
 
